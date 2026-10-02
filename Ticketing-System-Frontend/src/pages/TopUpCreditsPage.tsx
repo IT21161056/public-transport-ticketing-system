@@ -45,7 +45,7 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
 
   if (isSuccess) {
     return (
-      <div className="max-w-md mx-auto w-full py-12 px-4 text-center">
+      <div className="max-w-xl mx-auto w-full py-6 sm:py-10 text-center">
         <div className="bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
           <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mx-auto mb-5 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 animate-bounce-short text-emerald-400" />
@@ -90,7 +90,7 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
   }
 
   return (
-    <div className="max-w-md mx-auto w-full py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       {/* Back button */}
       <button
         onClick={() => onNavigate('account-qr')}

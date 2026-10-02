@@ -38,7 +38,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full py-8 px-4">
+    <div className="max-w-6xl mx-auto w-full py-4 sm:py-6">
       {/* Profile Header Card */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-xl mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-6 border-b border-slate-800">

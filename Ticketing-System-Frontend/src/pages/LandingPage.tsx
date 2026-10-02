@@ -16,7 +16,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onStartGuest }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-6 sm:py-14 px-4 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center py-4 sm:py-8 max-w-6xl mx-auto w-full">
       {/* Hero section */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-800/50 text-cyan-300 text-xs font-medium mb-5 shadow-sm">

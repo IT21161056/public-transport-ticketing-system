@@ -54,7 +54,7 @@ export const LocalQrPage: React.FC<LocalQrPageProps> = ({ user, onNavigate, onOp
   const isLowBalance = (user.creditBalance ?? 0) < STANDARD_RIDE_FARE;
 
   return (
-    <div className="max-w-md mx-auto w-full py-6 sm:py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       {/* Top navigation */}
       <div className="flex items-center justify-between mb-6">
         <button

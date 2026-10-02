@@ -32,7 +32,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   });
 
   return (
-    <div className="max-w-xl mx-auto w-full py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       {/* Back button */}
       <button
         onClick={() => onNavigate('guest-period')}

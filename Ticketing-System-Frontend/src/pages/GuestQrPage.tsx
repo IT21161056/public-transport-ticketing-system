@@ -82,7 +82,7 @@ export const GuestQrPage: React.FC<GuestQrPageProps> = ({ token, onNavigate, onO
   };
 
   return (
-    <div className="max-w-md mx-auto w-full py-6 sm:py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       {/* Top navigation */}
       <div className="flex items-center justify-between mb-6">
         <button

@@ -25,7 +25,7 @@ export const GuestPeriodPage: React.FC<GuestPeriodPageProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto w-full py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       {/* Back button */}
       <button
         onClick={() => onNavigate(user ? 'profile' : 'landing')}

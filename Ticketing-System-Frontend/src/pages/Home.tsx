@@ -27,7 +27,7 @@ export const Home: React.FC<HomeProps> = ({
   onOpenScanner,
 }) => {
   return (
-    <div className="max-w-5xl mx-auto w-full py-6 sm:py-10 space-y-12">
+    <div className="max-w-6xl mx-auto w-full py-4 sm:py-8 space-y-10">
       {/* Hero Section */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 p-6 sm:p-12 text-center shadow-2xl">
         {/* Ambient Top Glow */}

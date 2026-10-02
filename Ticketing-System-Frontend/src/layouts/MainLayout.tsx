@@ -37,7 +37,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-start px-2 sm:px-4 py-4 max-w-7xl mx-auto w-full">
+      <main className="flex-1 flex flex-col justify-start px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
         {children}
       </main>
 

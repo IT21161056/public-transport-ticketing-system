@@ -56,7 +56,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   // State: Pending Processing
   if (paymentState === 'pending') {
     return (
-      <div className="max-w-md mx-auto w-full py-16 px-4 text-center">
+      <div className="max-w-xl mx-auto w-full py-6 sm:py-10 text-center">
         <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
           <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
@@ -80,7 +80,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   // State: Payment Successful
   if (paymentState === 'successful') {
     return (
-      <div className="max-w-md mx-auto w-full py-16 px-4 text-center">
+      <div className="max-w-xl mx-auto w-full py-6 sm:py-10 text-center">
         <div className="bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
           <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mx-auto mb-6 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 animate-bounce-short text-emerald-400" />
@@ -102,7 +102,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   // State: Payment Failed
   if (paymentState === 'failed') {
     return (
-      <div className="max-w-md mx-auto w-full py-12 px-4 text-center">
+      <div className="max-w-xl mx-auto w-full py-6 sm:py-8 text-center">
         <div className="bg-slate-900/90 border border-rose-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
           <div className="w-16 h-16 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/30 mx-auto mb-5 flex items-center justify-center">
             <AlertCircle className="w-8 h-8" />
@@ -136,7 +136,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
   // State: Payment Cancelled
   if (paymentState === 'cancelled') {
     return (
-      <div className="max-w-md mx-auto w-full py-12 px-4 text-center">
+      <div className="max-w-xl mx-auto w-full py-6 sm:py-8 text-center">
         <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
           <div className="w-16 h-16 rounded-full bg-slate-800 text-slate-400 mx-auto mb-5 flex items-center justify-center">
             <XCircle className="w-8 h-8" />
@@ -168,7 +168,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
 
   // State: Default Idle (Method Selection)
   return (
-    <div className="max-w-md mx-auto w-full py-8 px-4">
+    <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
       <button
         onClick={() => onNavigate('guest-checkout')}
         className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors mb-6"
