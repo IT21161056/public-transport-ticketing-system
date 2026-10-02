@@ -1,0 +1,27 @@
+{
+  "name": "ticketing-system-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UrbanTransit - Contactless QR Public Transport Ticketing System",
+  "workspaces": [
+    "Ticketing-System-Frontend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix Ticketing-System-Frontend",
+    "build:frontend": "npm run build --prefix Ticketing-System-Frontend",
+    "dev:backend": "dotnet run --project Ticketing-System-Backend",
+    "build:backend": "dotnet build Ticketing-System.sln",
+    "build": "npm run build:frontend && npm run build:backend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "keywords": [
+    "transit",
+    "ticketing-system",
+    "qr-pass",
+    "dotnet",
+    "react",
+    "monorepo"
+  ],
+  "license": "MIT"
+}

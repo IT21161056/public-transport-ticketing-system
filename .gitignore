@@ -1,0 +1,80 @@
+# =====================================================================
+# MONOREPO GITIGNORE
+# UrbanTransit: .NET Web API Backend + React Vite Tailwind Frontend
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Node.js & Frontend (Ticketing-System-Frontend)
+# ---------------------------------------------------------------------
+**/node_modules/
+node_modules/
+**/dist/
+dist/
+**/dist-ssr/
+dist-ssr/
+*.local
+.npm/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+.vite/
+**/coverage/
+
+# ---------------------------------------------------------------------
+# .NET & Backend (Ticketing-System-Backend)
+# ---------------------------------------------------------------------
+**/bin/
+**/obj/
+**/[Bb]in/
+**/[Oo]bj/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.userprefs
+*.pidb
+*.booproj
+*.svclog
+*.publishsettings
+
+# ---------------------------------------------------------------------
+# IDEs & Editors
+# ---------------------------------------------------------------------
+.vs/
+**/.vs/
+.idea/
+**/.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# VS Code (preserve team configuration)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ---------------------------------------------------------------------
+# Secrets & Environment Files
+# ---------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+appsettings.*.local.json
+appsettings.local.json
+secrets.json
+
+# ---------------------------------------------------------------------
+# Docker & Database local storage
+# ---------------------------------------------------------------------
+postgres_data/
+**/postgres_data/
