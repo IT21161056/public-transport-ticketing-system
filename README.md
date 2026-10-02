@@ -95,24 +95,3 @@ Frontend web application will be accessible at: **`http://localhost:5173`**
 
 ---
 
-## 🌐 Pushing to Your Remote Repository
-
-To push this monorepo to your existing GitHub / GitLab / Bitbucket repository:
-
-```bash
-# 1. Initialize git (if not already done)
-git init
-
-# 2. Add all files to staging
-git add .
-
-# 3. Create initial commit
-git commit -m "feat: initial monorepo setup for Ticketing-System (.NET API + React Frontend)"
-
-# 4. Link your remote repository URL
-git remote add origin <YOUR_REPOSITORY_URL>
-
-# 5. Push to main branch
-git branch -M main
-git push -u origin main
-```
