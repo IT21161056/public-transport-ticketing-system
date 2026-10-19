@@ -8,6 +8,7 @@ using Ticketing_System_Backend.Services;
 using Ticketing_System_Backend.Services.Fare;
 using Ticketing_System_Backend.Services.Inspection;
 using Ticketing_System_Backend.Services.Inspection.Rules;
+using Ticketing_System_Backend.Services.Reporting;
 
 namespace Ticketing_System_Backend.Extensions;
 
@@ -37,6 +38,7 @@ public static class ServiceExtensions
         services.AddScoped<ITokenRepository, TokenRepository>();
         services.AddScoped<IJourneyRepository, JourneyRepository>();
         services.AddScoped<IInspectionRepository, InspectionRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
 
         return services;
     }
@@ -59,6 +61,11 @@ public static class ServiceExtensions
         services.AddScoped<ActiveJourneyRule>();
         services.AddScoped<StaleJourneyRule>();
         services.AddScoped<IInspectionService, InspectionService>();
+
+        // Transport Manager reports
+        services.AddOptions<ReportingOptions>().BindConfiguration(ReportingOptions.SectionName);
+        services.AddScoped<IReportService, ReportService>();
+        services.AddHostedService<ReportDemoDataSeeder>();
 
         return services;
     }
