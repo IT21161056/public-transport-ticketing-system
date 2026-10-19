@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield, Menu } from 'lucide-react';
 import type { RegisteredUser } from '../types';
 import AdminSidebar, { type AdminTab } from '../components/AdminSidebar';
@@ -24,15 +24,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   children,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const currentTab: AdminTab = (searchParams.get('tab') as AdminTab) || 'overview';
 
+  // Dashboard tabs live on /admin, so selecting one from another admin page goes back there
   const handleSelectTab = (tab: AdminTab) => {
-    setSearchParams({ tab });
+    navigate({ pathname: '/admin', search: `?tab=${tab}` });
   };
 
   const getTabTitle = (tab: AdminTab) => {
+    if (pathname === '/admin/inspection') return 'Ticket Inspection';
+    if (pathname === '/admin/reports') return 'Manager Reports';
     switch (tab) {
       case 'users':
         return 'Commuter & Account Management';
