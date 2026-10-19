@@ -1,11 +1,9 @@
 import React from 'react';
 import { 
   Shield, 
-  LayoutDashboard, 
-  Users, 
-  Radio, 
-  Ticket, 
-  LogOut, 
+  LayoutDashboard,
+  Radio,
+  LogOut,
   X, 
   ChevronRight, 
   Sparkles, 
@@ -15,6 +13,7 @@ import {
 import type { RegisteredUser } from '../types';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ScanLine } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 export type AdminTab = 'overview' | 'users' | 'journeys' | 'passes';
 
@@ -45,6 +44,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isInspectionActive = pathname === '/admin/inspection';
+  const isReportsActive = pathname === '/admin/reports';
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,7 +56,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpenMobile, onCloseMobile]);
 
-  const menuItems = [
+  // Users / Journeys / Passes stay reachable through the tab bar on the dashboard itself
+  const menuItems: {
+    id: AdminTab;
+    label: string;
+    description: string;
+    icon: typeof LayoutDashboard;
+    activeColor: string;
+    activeBg: string;
+    badge?: string;
+    badgeColor?: string;
+  }[] = [
     {
       id: 'overview' as AdminTab,
       label: 'Operations Overview',
@@ -64,32 +74,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       icon: LayoutDashboard,
       activeColor: 'text-purple-400',
       activeBg: 'bg-purple-500/10 border-purple-500/30',
-    },
-    {
-      id: 'users' as AdminTab,
-      label: 'Commuters & Accounts',
-      description: 'User management & credit balance',
-      icon: Users,
-      activeColor: 'text-blue-400',
-      activeBg: 'bg-blue-500/10 border-blue-500/30',
-    },
-    {
-      id: 'journeys' as AdminTab,
-      label: 'Turnstile Journeys',
-      description: 'Live gate tap feed & fares',
-      icon: Radio,
-      badge: 'Live',
-      badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-      activeColor: 'text-cyan-400',
-      activeBg: 'bg-cyan-500/10 border-cyan-500/30',
-    },
-    {
-      id: 'passes' as AdminTab,
-      label: 'Guest Passes Fleet',
-      description: 'Temporary visitor passes',
-      icon: Ticket,
-      activeColor: 'text-emerald-400',
-      activeBg: 'bg-emerald-500/10 border-emerald-500/30',
     },
   ];
 
@@ -145,7 +129,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id;
+          // Dashboard tabs only count as active on the dashboard itself, not on /admin/inspection or /admin/reports
+          const isActive = currentTab === item.id && (pathname === '/admin' || pathname === '/admin/');
           return (
             <button
               key={item.id}
@@ -203,18 +188,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 if (onCloseMobile) onCloseMobile();
                 onOpenScanner();
               }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-purple-300 bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/50 hover:border-purple-700 transition-all cursor-pointer group"
+              // Opens a modal rather than a page, so it never shows an active state
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/70 transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-purple-900/60 flex items-center justify-center text-purple-400">
-                  <Radio className="w-3.5 h-3.5 animate-pulse" />
+                <div className="w-7 h-7 rounded-lg bg-slate-900/60 flex items-center justify-center text-purple-400">
+                  <Radio className="w-3.5 h-3.5" />
                 </div>
                 <div className="text-left leading-tight">
-                  <div className="font-semibold text-purple-200">Gate Tap Simulator</div>
-                  <div className="text-[10px] text-purple-400/80">Test turnstile validation</div>
+                  <div className="font-semibold">Gate Tap Simulator</div>
+                  <div className="text-[10px] text-slate-500">Test turnstile validation</div>
                 </div>
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-600 group-hover:text-purple-400 group-hover:rotate-12 transition-all" />
             </button>
           )}
         </div>
@@ -242,6 +228,33 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <div className="text-left leading-tight">
               <div className="font-semibold">Ticket Inspection</div>
               <div className="text-[10px] text-slate-500">Scan passenger QR tokens</div>
+            </div>
+          </button>
+        </div>
+
+        {/* Section: Management (Manager Reports) */}
+        <div className="pt-2">
+          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            Management
+          </div>
+          <button
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              navigate('/admin/reports');
+            }}
+            aria-current={isReportsActive ? 'page' : undefined}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+              isReportsActive
+                ? 'bg-purple-500/10 border-purple-500/30 text-white font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/70'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-lg bg-slate-900/60 flex items-center justify-center text-purple-400">
+              <BarChart3 className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left leading-tight">
+              <div className="font-semibold">Manager Reports</div>
+              <div className="text-[10px] text-slate-500">Ridership, revenue & evasion</div>
             </div>
           </button>
         </div>
