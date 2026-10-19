@@ -58,11 +58,13 @@ export const Login: React.FC<LoginProps> = ({ onNavigate, onRequestOtp }) => {
         )}
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-slate-300">
+          <label htmlFor="login-phone-number" className="text-xs font-medium text-slate-300">
             Registered Phone Number <span className="text-cyan-400">*</span>
           </label>
           <div className="flex gap-2">
             <select
+              id="login-country-code"
+              aria-label="Country calling code"
               value={phonePrefix}
               onChange={(e) => setPhonePrefix(e.target.value)}
               className="bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-cyan-500 font-mono transition-colors"
@@ -77,7 +79,9 @@ export const Login: React.FC<LoginProps> = ({ onNavigate, onRequestOtp }) => {
             </select>
 
             <Input
+              id="login-phone-number"
               type="tel"
+              autoComplete="tel"
               placeholder="77 123 4567"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}

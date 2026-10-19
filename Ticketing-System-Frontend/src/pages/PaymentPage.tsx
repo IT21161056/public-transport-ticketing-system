@@ -7,8 +7,7 @@ import {
   AlertCircle, 
   CheckCircle2, 
   XCircle,
-  Lock,
-  Wallet
+  Lock
 } from 'lucide-react';
 import type { AccessDurationDays, AppRoute, PaymentMethod, PaymentState } from '../types';
 import { DURATION_OPTIONS } from '../utils/storage';
@@ -192,118 +191,119 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({
         </div>
 
         {/* Method selection tabs */}
-        <div className="grid grid-cols-3 gap-2 mb-6">
+        <div role="radiogroup" aria-label="Select Payment Method" className="grid grid-cols-2 gap-3 mb-6">
           <button
             type="button"
+            role="radio"
+            aria-checked={method === 'card'}
             onClick={() => setMethod('card')}
-            className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
+            className={`p-3.5 rounded-xl border flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
               method === 'card'
                 ? 'bg-cyan-500/10 border-cyan-400 text-cyan-300 shadow-sm'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
             }`}
           >
             <CreditCard className="w-4 h-4" />
-            <span className="text-[11px] font-semibold">Credit Card</span>
+            <span className="text-xs font-semibold">Credit / Debit Card</span>
           </button>
 
           <button
             type="button"
+            role="radio"
+            aria-checked={method === 'apple_pay'}
             onClick={() => setMethod('apple_pay')}
-            className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
+            className={`p-3.5 rounded-xl border flex items-center justify-center gap-2.5 transition-all cursor-pointer ${
               method === 'apple_pay'
                 ? 'bg-cyan-500/10 border-cyan-400 text-cyan-300 shadow-sm'
                 : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
             }`}
           >
             <Smartphone className="w-4 h-4" />
-            <span className="text-[11px] font-semibold">Apple Pay</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setMethod('transit_wallet')}
-            className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
-              method === 'transit_wallet'
-                ? 'bg-cyan-500/10 border-cyan-400 text-cyan-300 shadow-sm'
-                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
-            }`}
-          >
-            <Wallet className="w-4 h-4" />
-            <span className="text-[11px] font-semibold">Digital Pass</span>
+            <span className="text-xs font-semibold">Apple Pay / Google Pay</span>
           </button>
         </div>
 
-        {/* Card input mockup */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-              Card Number
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
-              />
-              <CreditCard className="w-4 h-4 text-slate-400 absolute right-4 top-3.5" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+        {/* Dynamic Payment Body */}
+        {method === 'card' ? (
+          <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                Expiry Date
+              <label htmlFor="payment-card-number" className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                Card Number
               </label>
-              <input
-                type="text"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
-              />
+              <div className="relative">
+                <input
+                  id="payment-card-number"
+                  type="text"
+                  autoComplete="cc-number"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
+                />
+                <CreditCard className="w-4 h-4 text-slate-400 absolute right-4 top-3.5" />
+              </div>
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                CVV / CVC
-              </label>
-              <input
-                type="password"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
-                maxLength={4}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
-              />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="payment-expiry" className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                  Expiry Date
+                </label>
+                <input
+                  id="payment-expiry"
+                  type="text"
+                  autoComplete="cc-exp"
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+              <div>
+                <label htmlFor="payment-cvv" className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                  CVV / CVC
+                </label>
+                <input
+                  id="payment-cvv"
+                  type="password"
+                  autoComplete="cc-csc"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value)}
+                  maxLength={4}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-cyan-400"
+                />
+              </div>
             </div>
-          </div>
-        </div>
 
-        <button
-          onClick={() => initiatePayment('success')}
-          className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all transform active:scale-[0.99] mb-4"
-        >
-          <Lock className="w-4 h-4" />
-          <span>Pay ${option.price.toFixed(2)} & Issue QR Pass</span>
-        </button>
-
-        {/* Section 12 Required State Simulation Controls (Demonstration & Verification) */}
-        <div className="pt-4 border-t border-slate-800">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 block mb-2 text-center">
-            Simulate Gateway Result:
-          </span>
-          <div className="flex gap-2">
             <button
-              onClick={() => initiatePayment('fail')}
-              className="flex-1 py-1.5 px-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 text-[11px] font-semibold transition-colors"
+              onClick={() => initiatePayment('success')}
+              className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all transform active:scale-[0.99] cursor-pointer"
             >
-              Simulate Failure
-            </button>
-            <button
-              onClick={() => initiatePayment('cancel')}
-              className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-semibold transition-colors"
-            >
-              Simulate Cancel
+              <Lock className="w-4 h-4" />
+              <span>Pay ${option.price.toFixed(2)} & Issue QR Pass</span>
             </button>
           </div>
+        ) : (
+          <div className="space-y-4 mb-6">
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-2">
+              <Smartphone className="w-8 h-8 text-cyan-400 mx-auto" />
+              <div className="text-sm font-semibold text-white">Express Digital Wallet</div>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                Authenticate securely with Face ID, Touch ID, or Google Pay on this device.
+              </p>
+            </div>
+
+            <button
+              onClick={() => initiatePayment('success')}
+              className="w-full py-4 px-6 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-[0.99] cursor-pointer"
+            >
+              <Lock className="w-4 h-4 text-slate-950" />
+              <span>Pay ${option.price.toFixed(2)} with Digital Wallet</span>
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-2">
+          <Lock className="w-3.5 h-3.5 text-cyan-400" />
+          <span>256-bit TLS encrypted bank-grade transit gateway transaction.</span>
         </div>
       </div>
     </div>

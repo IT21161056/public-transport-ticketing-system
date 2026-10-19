@@ -8,6 +8,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(Guid id);
     Task<User?> GetByPhoneNumberAsync(string phoneNumber);
+    Task<User?> GetByUsernameOrEmailAsync(string identifier);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
     Task SaveChangesAsync();

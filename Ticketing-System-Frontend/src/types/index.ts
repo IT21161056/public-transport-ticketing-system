@@ -28,6 +28,9 @@ export interface RegisteredUser {
   creditBalance: number; // e.g. 1250.00 credits
   persistentQrToken: string; // persistent credential e.g. LCL-QR-78214-XXXX
   accountStatus: 'active' | 'suspended';
+  role?: number | string; // 2: Admin, 1: Inspector, 0: Commuter
+  email?: string;
+  userName?: string;
 }
 
 export interface GuestSession {
@@ -108,7 +111,7 @@ export interface TransitLine {
 // User Administration & Auth DTOs
 // ==========================================
 
-export type UserRole = 1 | 2 | 3; // 1: Admin, 2: Operator, 3: Commuter
+export type UserRole = 0 | 1 | 2; // 0: Commuter, 1: Inspector, 2: Admin
 
 export interface UserDto {
   id: string;
@@ -164,3 +167,54 @@ export interface ChangePasswordRequest {
   currentPassword?: string;
   newPassword?: string;
 }
+
+// ==========================================
+// Admin Suite Types
+// ==========================================
+
+export interface AdminDashboardStats {
+  totalUsers: number;
+  totalWalletCredits: number;
+  activeGuestPasses: number;
+  totalJourneys: number;
+  totalFareCollected: number;
+}
+
+export interface AdminUserItem {
+  id: string;
+  userName?: string;
+  email?: string;
+  fullName: string;
+  phoneNumber?: string;
+  role: number;
+  roleName: string;
+  isActive: boolean;
+  creditBalance: number;
+  persistentQrToken?: string;
+  createdAtUtc: string;
+  lastLoginAtUtc?: string;
+}
+
+export interface AdminJourneyItem {
+  id: string;
+  commuterName?: string;
+  commuterPhone?: string;
+  deviceUuid?: string;
+  tapInStation: string;
+  tapInTimeUtc: string;
+  tapOutStation?: string;
+  tapOutTimeUtc?: string;
+  fareAmount: number;
+  status: string;
+}
+
+export interface AdminGuestPassItem {
+  id: string;
+  deviceUuid: string;
+  passTier: string;
+  signedToken: string;
+  isActive: boolean;
+  createdAtUtc: string;
+  expiresAtUtc?: string;
+}
+

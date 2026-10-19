@@ -17,19 +17,17 @@ export interface HomeProps {
   onNavigate: (route: AppRoute) => void;
   onStartGuest: () => void;
   user?: RegisteredUser | null;
-  onOpenScanner?: () => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
   onNavigate,
   onStartGuest,
   user,
-  onOpenScanner,
 }) => {
   return (
     <div className="max-w-6xl mx-auto w-full py-4 sm:py-8 space-y-10">
       {/* Hero Section */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 p-6 sm:p-12 text-center shadow-2xl">
+      <div className="relative py-6 sm:py-12 text-center">
         {/* Ambient Top Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-cyan-500/15 blur-3xl pointer-events-none" />
 
@@ -98,19 +96,6 @@ export const Home: React.FC<HomeProps> = ({
               </>
             )}
           </div>
-
-          {/* Quick Scanner Shortcut */}
-          {onOpenScanner && (
-            <div className="pt-2">
-              <button
-                onClick={onOpenScanner}
-                className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 underline underline-offset-4 decoration-cyan-500/40 transition-colors"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                <span>Simulate Turnstile Gate Scanner</span>
-              </button>
-            </div>
-          )}
         </div>
       </div>
 

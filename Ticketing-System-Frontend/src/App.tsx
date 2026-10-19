@@ -1,20 +1,25 @@
-import { useState, useEffect } from 'react';
-import { MainLayout } from './layouts/MainLayout';
-import { Home } from './pages/Home';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
-import { FlowStepper } from './components/FlowStepper';
-import { NotificationToast } from './components/NotificationToast';
-import { VerifyOtpPage } from './pages/VerifyOtpPage';
-import { LocalQrPage } from './pages/LocalQrPage';
-import { TopUpCreditsPage } from './pages/TopUpCreditsPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { GuestPeriodPage } from './pages/GuestPeriodPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { PaymentPage } from './pages/PaymentPage';
-import { GuestQrPage } from './pages/GuestQrPage';
-import { GateScannerModal } from './pages/GateScannerModal';
+import { useState, useCallback } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Home,
+  Login,
+  Register,
+  Dashboard,
+  VerifyOtpPage,
+  LocalQrPage,
+  TopUpCreditsPage,
+  ProfilePage,
+  GuestPeriodPage,
+  CheckoutPage,
+  PaymentPage,
+  GuestQrPage,
+  GateScannerModal,
+  AdminDashboard,
+  AdminLogin 
+} from './pages';
+import { MainLayout, AdminLayout } from './layouts';
+import { FlowStepper, NotificationToast } from './components';
+import { useAuth, useAdminAuth, useTheme } from './hooks';
 
 import type { 
   AppRoute, 
@@ -32,8 +37,7 @@ import {
 } from './utils/storage';
 import { getOrCreateDeviceUuid } from './utils/deviceUuid';
 import { tokenApi } from './api/tokenApi';
-import { useAuth } from './hooks/useAuth';
-import { useTheme } from './hooks/useTheme';
+import { ROUTE_PATHS, ADMIN_PATHS, pathToRoute, homePathFor } from './routes';
 
 export function App() {
   const { theme, toggleTheme } = useTheme();
@@ -48,7 +52,20 @@ export function App() {
     updateUserState,
   } = useAuth();
 
-  const [currentRoute, setCurrentRoute] = useState<AppRoute>('home');
+  const { adminUser, login: adminLogin, logout: adminLogout } = useAdminAuth();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Logical route derived from the URL (used for navbar highlighting & guest stepper)
+  const currentRoute: AppRoute = pathToRoute(location.pathname);
+
+  // Components still navigate via logical route names; this maps them to URLs.
+  const goTo = useCallback(
+    (route: AppRoute) => navigate(ROUTE_PATHS[route]),
+    [navigate]
+  );
+
   const [guestSession, setGuestSession] = useState<GuestSession | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<AccessDurationDays>(3);
   const [guestTokens, setGuestTokens] = useState<GuestTransportToken[]>(() => getGuestTokens());
@@ -61,13 +78,6 @@ export function App() {
     setGuestTokens(getGuestTokens());
     setTransactions(getTransactions());
   };
-
-  // When user is authenticated on initial load or change, route to dashboard if at login or register
-  useEffect(() => {
-    if (user && (currentRoute === 'login' || currentRoute === 'register')) {
-      setCurrentRoute('dashboard');
-    }
-  }, [user, currentRoute]);
 
   const handleStartGuest = async () => {
     const deviceUuid = getOrCreateDeviceUuid();
@@ -91,7 +101,7 @@ export function App() {
           signedToken: pass.signedToken,
         };
         setActiveGuestToken(guestTok);
-        setCurrentRoute('guest-qr');
+        goTo('guest-qr');
         return;
       }
     } catch {
@@ -100,26 +110,26 @@ export function App() {
 
     const session = getOrCreateGuestSession();
     setGuestSession(session);
-    setCurrentRoute('guest-period');
+    goTo('guest-period');
   };
 
   const handleRequestOtp = async (fullName: string, phone: string, mode: 'register' | 'login') => {
     await requestOtp(fullName, phone, mode);
-    setCurrentRoute('verify-phone');
+    goTo('verify-phone');
   };
 
   const handleLogout = () => {
     logout();
-    setCurrentRoute('home');
+    goTo('home');
   };
 
   const handleSelectPeriod = (days: AccessDurationDays) => {
     setSelectedDuration(days);
-    setCurrentRoute('guest-checkout');
+    goTo('guest-checkout');
   };
 
   const handleProceedToPayment = () => {
-    setCurrentRoute('guest-payment');
+    goTo('guest-payment');
   };
 
   const handleGuestPaymentSuccess = async () => {
@@ -142,7 +152,7 @@ export function App() {
     const token = issueGuestToken(session.guestId, selectedDuration, signedTokenStr);
     refreshGuestAndTxs();
     setActiveGuestToken(token);
-    setCurrentRoute('guest-qr');
+    goTo('guest-qr');
   };
 
   const handleOpenScanner = (token?: string) => {
@@ -164,201 +174,282 @@ export function App() {
   if (currentRoute === 'guest-payment') currentStepIndex = 2;
   if (currentRoute === 'guest-qr') currentStepIndex = 3;
 
-  // Standalone Auth layout routes
-  if (currentRoute === 'login') {
-    return (
-      <>
-        <NotificationToast
-          otpCode={toastCode}
-          phoneNumber={otpData?.phoneNumber}
-          onClose={() => setToastCode(null)}
-        />
-        <Login onNavigate={setCurrentRoute} onRequestOtp={handleRequestOtp} />
-      </>
-    );
-  }
+  const toast = (
+    <NotificationToast
+      otpCode={toastCode}
+      phoneNumber={otpData?.phoneNumber}
+      onClose={() => setToastCode(null)}
+    />
+  );
 
-  if (currentRoute === 'register') {
-    return (
-      <>
-        <NotificationToast
-          otpCode={toastCode}
-          phoneNumber={otpData?.phoneNumber}
-          onClose={() => setToastCode(null)}
-        />
-        <Register onNavigate={setCurrentRoute} onRequestOtp={handleRequestOtp} />
-      </>
-    );
-  }
-
-  if (currentRoute === 'verify-phone' && otpData) {
-    return (
-      <>
-        <NotificationToast
-          otpCode={toastCode}
-          phoneNumber={otpData?.phoneNumber}
-          onClose={() => setToastCode(null)}
-        />
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-          <VerifyOtpPage
-            phoneNumber={otpData.phoneNumber}
-            fullName={otpData.fullName}
-            expectedOtp={otpData.code}
-            mode={otpData.mode}
-            onNavigate={setCurrentRoute}
-            onVerifySuccess={() => {
-              refreshGuestAndTxs();
-              setCurrentRoute('dashboard');
-            }}
-            onVerifyCode={async (code: string) => {
-              const res = await verifyOtp(code);
-              if (res.success) {
-                refreshGuestAndTxs();
-                setCurrentRoute('dashboard');
-              }
-              return res;
-            }}
-            onResendOtp={async () => {
-              if (otpData) {
-                await requestOtp(otpData.fullName, otpData.phoneNumber, otpData.mode);
-              }
-            }}
-          />
-        </div>
-      </>
-    );
-  }
+  // Route guards
+  const requireAuth = (element: React.ReactElement) =>
+    user ? element : <Navigate to={ROUTE_PATHS.login} replace />;
 
   return (
-    <MainLayout
-      currentRoute={currentRoute}
-      onNavigate={setCurrentRoute}
-      user={user}
-      onLogout={handleLogout}
-      onOpenScanner={() => handleOpenScanner()}
-      theme={theme}
-      onToggleTheme={toggleTheme}
-    >
-      {/* Simulated SMS Notification */}
-      <NotificationToast
-        otpCode={toastCode}
-        phoneNumber={otpData?.phoneNumber}
-        onClose={() => setToastCode(null)}
+    <Routes>
+      {/* ===== Admin flow: fully separate router tree ===== */}
+      <Route
+        path={ADMIN_PATHS.login}
+        element={
+          adminUser ? (
+            <Navigate to={ADMIN_PATHS.home} replace />
+          ) : (
+            <AdminLogin
+              onLogin={async (id, pw) => {
+                const res = await adminLogin(id, pw);
+                if (res.success) navigate(ADMIN_PATHS.home, { replace: true });
+                return res;
+              }}
+            />
+          )
+        }
+      />
+      <Route
+        path="/admin/*"
+        element={
+          adminUser ? (
+            <AdminLayout
+              admin={adminUser}
+              onLogout={() => {
+                adminLogout();
+                navigate(ADMIN_PATHS.login, { replace: true });
+              }}
+              onOpenScanner={() => handleOpenScanner()}
+            >
+              <Routes>
+                <Route index element={<AdminDashboard user={adminUser} onOpenScanner={() => handleOpenScanner()} />} />
+                <Route path="*" element={<Navigate to={ADMIN_PATHS.home} replace />} />
+              </Routes>
+
+              {/* Floating Gate Scanner Modal for Admin Test Clearance */}
+              {isScannerOpen && (
+                <GateScannerModal
+                  initialToken={scannerToken}
+                  onClose={() => setIsScannerOpen(false)}
+                  onScanCompleted={refreshGuestAndTxs}
+                />
+              )}
+            </AdminLayout>
+          ) : (
+            <Navigate to={ADMIN_PATHS.login} replace />
+          )
+        }
       />
 
-      {/* Guest Progress Stepper */}
-      {currentStepIndex >= 0 && (
-        <FlowStepper steps={guestSteps} currentStepIndex={currentStepIndex} />
-      )}
+      {/* Standalone Auth layout routes */}
+      <Route
+        path={ROUTE_PATHS.login}
+        element={
+          user ? (
+            <Navigate to={homePathFor(user)} replace />
+          ) : (
+            <>
+              {toast}
+              <Login
+                onNavigate={goTo}
+                onRequestOtp={handleRequestOtp}
+              />
+            </>
+          )
+        }
+      />
 
-      {/* Core Pages */}
-      {(currentRoute === 'home' || currentRoute === 'landing') && (
-        <Home
-          onNavigate={setCurrentRoute}
-          onStartGuest={handleStartGuest}
-          user={user}
-          onOpenScanner={() => handleOpenScanner()}
-        />
-      )}
+      <Route
+        path={ROUTE_PATHS.register}
+        element={
+          user ? (
+            <Navigate to={homePathFor(user)} replace />
+          ) : (
+            <>
+              {toast}
+              <Register onNavigate={goTo} onRequestOtp={handleRequestOtp} />
+            </>
+          )
+        }
+      />
 
-      {currentRoute === 'dashboard' && user && (
-        <Dashboard
-          user={user}
-          transactions={transactions}
-          onNavigate={setCurrentRoute}
-          onOpenScanner={handleOpenScanner}
-        />
-      )}
+      <Route
+        path={ROUTE_PATHS['verify-phone']}
+        element={
+          otpData ? (
+            <>
+              {toast}
+              <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+                <VerifyOtpPage
+                  phoneNumber={otpData.phoneNumber}
+                  fullName={otpData.fullName}
+                  expectedOtp={otpData.code}
+                  mode={otpData.mode}
+                  onNavigate={goTo}
+                  onVerifySuccess={() => {
+                    refreshGuestAndTxs();
+                    goTo('dashboard');
+                  }}
+                  onVerifyCode={async (code: string) => {
+                    const res = await verifyOtp(code);
+                    if (res.success) {
+                      refreshGuestAndTxs();
+                      goTo('dashboard');
+                    }
+                    return res;
+                  }}
+                  onResendOtp={async () => {
+                    if (otpData) {
+                      await requestOtp(otpData.fullName, otpData.phoneNumber, otpData.mode);
+                    }
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <Navigate to={user ? homePathFor(user) : ROUTE_PATHS.login} replace />
+          )
+        }
+      />
 
-      {/* Local Commuter Registered Routes */}
-      {currentRoute === 'account-qr' && user && (
-        <LocalQrPage
-          user={user}
-          onNavigate={setCurrentRoute}
-          onOpenScanner={handleOpenScanner}
-        />
-      )}
+      {/* Main application shell */}
+      <Route
+        path="/*"
+        element={
+          <MainLayout
+            currentRoute={currentRoute}
+            onNavigate={goTo}
+            user={user}
+            onLogout={handleLogout}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          >
+            {/* Simulated SMS Notification */}
+            {toast}
 
-      {currentRoute === 'account-credits' && user && (
-        <TopUpCreditsPage
-          user={user}
-          onNavigate={setCurrentRoute}
-          onUpdateUser={(updated) => {
-            updateUserState(updated);
-            refreshGuestAndTxs();
-          }}
-        />
-      )}
+            {/* Guest Progress Stepper */}
+            {currentStepIndex >= 0 && (
+              <FlowStepper steps={guestSteps} currentStepIndex={currentStepIndex} />
+            )}
 
-      {currentRoute === 'profile' && user && (
-        <ProfilePage
-          user={user}
-          transactions={transactions}
-          onNavigate={setCurrentRoute}
-          onOpenScanner={handleOpenScanner}
-        />
-      )}
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <Home
+                    onNavigate={goTo}
+                    onStartGuest={handleStartGuest}
+                    user={user}
+                  />
+                }
+              />
 
-      {/* Guest Visitor Flows */}
-      {currentRoute === 'guest-period' && (
-        <GuestPeriodPage
-          guestSession={guestSession}
-          user={user}
-          onNavigate={setCurrentRoute}
-          onSelectPeriod={handleSelectPeriod}
-        />
-      )}
+              <Route
+                path={ROUTE_PATHS.dashboard}
+                element={requireAuth(
+                  <Dashboard
+                    user={user!}
+                    transactions={transactions}
+                    onNavigate={goTo}
+                  />
+                )}
+              />
 
-      {currentRoute === 'guest-checkout' && (
-        <CheckoutPage
-          durationDays={selectedDuration}
-          guestSession={guestSession}
-          user={user}
-          onNavigate={setCurrentRoute}
-          onProceedToPayment={handleProceedToPayment}
-        />
-      )}
+              {/* Local Commuter Registered Routes */}
+              <Route
+                path={ROUTE_PATHS['account-qr']}
+                element={requireAuth(
+                  <LocalQrPage
+                    user={user!}
+                    onNavigate={goTo}
+                  />
+                )}
+              />
 
-      {currentRoute === 'guest-payment' && (
-        <PaymentPage
-          durationDays={selectedDuration}
-          onNavigate={setCurrentRoute}
-          onPaymentSuccess={handleGuestPaymentSuccess}
-        />
-      )}
+              <Route
+                path={ROUTE_PATHS['account-credits']}
+                element={requireAuth(
+                  <TopUpCreditsPage
+                    user={user!}
+                    onNavigate={goTo}
+                    onUpdateUser={(updated) => {
+                      updateUserState(updated);
+                      refreshGuestAndTxs();
+                    }}
+                  />
+                )}
+              />
 
-      {currentRoute === 'guest-qr' && (
-        <GuestQrPage
-          token={
-            activeGuestToken ||
-            guestTokens[0] ||
-            issueGuestToken(guestSession?.guestId || 'GST-DEFAULT', selectedDuration)
-          }
-          onNavigate={setCurrentRoute}
-          onOpenScanner={handleOpenScanner}
-        />
-      )}
+              <Route
+                path={ROUTE_PATHS.profile}
+                element={requireAuth(
+                  <ProfilePage
+                    user={user!}
+                    transactions={transactions}
+                    onNavigate={goTo}
+                  />
+                )}
+              />
 
-      {/* Gate Turnstile Scanner View */}
-      {currentRoute === 'scanner' && (
-        <div className="py-6">
-          <GateScannerModal
-            initialToken={scannerToken}
-            onClose={() => setCurrentRoute(user ? 'dashboard' : 'home')}
-            onScanCompleted={refreshGuestAndTxs}
-          />
-        </div>
-      )}
+              {/* Guest Visitor Flows */}
+              <Route
+                path={ROUTE_PATHS.guest}
+                element={<Navigate to={ROUTE_PATHS['guest-period']} replace />}
+              />
 
-      {/* Floating Scanner Modal */}
-      {isScannerOpen && (
-        <GateScannerModal
-          initialToken={scannerToken}
-          onClose={() => setIsScannerOpen(false)}
-          onScanCompleted={refreshGuestAndTxs}
-        />
-      )}
-    </MainLayout>
+              <Route
+                path={ROUTE_PATHS['guest-period']}
+                element={
+                  <GuestPeriodPage
+                    guestSession={guestSession}
+                    user={user}
+                    onNavigate={goTo}
+                    onSelectPeriod={handleSelectPeriod}
+                  />
+                }
+              />
+
+              <Route
+                path={ROUTE_PATHS['guest-checkout']}
+                element={
+                  <CheckoutPage
+                    durationDays={selectedDuration}
+                    guestSession={guestSession}
+                    user={user}
+                    onNavigate={goTo}
+                    onProceedToPayment={handleProceedToPayment}
+                  />
+                }
+              />
+
+              <Route
+                path={ROUTE_PATHS['guest-payment']}
+                element={
+                  <PaymentPage
+                    durationDays={selectedDuration}
+                    onNavigate={goTo}
+                    onPaymentSuccess={handleGuestPaymentSuccess}
+                  />
+                }
+              />
+
+              <Route
+                path={ROUTE_PATHS['guest-qr']}
+                element={
+                  <GuestQrPage
+                    token={
+                      activeGuestToken ||
+                      guestTokens[0] ||
+                      issueGuestToken(guestSession?.guestId || 'GST-DEFAULT', selectedDuration)
+                    }
+                    onNavigate={goTo}
+                  />
+                }
+              />
+
+              {/* Unknown URLs fall back to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </MainLayout>
+        }
+      />
+    </Routes>
   );
 }
 

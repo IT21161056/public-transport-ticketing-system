@@ -1,5 +1,8 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 
+export const ADMIN_TOKEN_KEY = 'admin_token';
+export const ADMIN_USER_KEY = 'admin_user';
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5179/api';
 
 /**
@@ -29,8 +32,9 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor: inject token, trace ID, or log in dev mode
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // If auth token exists in localStorage, attach to header
-    const token = localStorage.getItem('auth_token');
+    // Admin API calls use the isolated admin session; commuters use their own token
+    const isAdminCall = (config.url || '').startsWith('/admin');
+    const token = localStorage.getItem(isAdminCall ? ADMIN_TOKEN_KEY : 'auth_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

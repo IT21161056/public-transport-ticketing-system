@@ -34,7 +34,10 @@ public class AccountService : IAccountService
             PhoneNumber: user.PhoneNumber,
             CreditBalance: user.CreditBalance,
             PersistentQrToken: user.PersistentQrToken,
-            IsPhoneVerified: user.IsPhoneVerified
+            IsPhoneVerified: user.IsPhoneVerified,
+            Role: user.Role,
+            Email: user.Email,
+            UserName: user.UserName
         );
     }
 

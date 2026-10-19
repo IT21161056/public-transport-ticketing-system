@@ -64,14 +64,23 @@ export const GuestPeriodPage: React.FC<GuestPeriodPageProps> = ({
       )}
 
       {/* Duration Options Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div role="radiogroup" aria-label="Select Access Duration" className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {DURATION_OPTIONS.map((option) => {
           const isSelected = selectedDays === option.days;
           return (
             <div
               key={option.days}
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  setSelectedDays(option.days);
+                }
+              }}
               onClick={() => setSelectedDays(option.days)}
-              className={`relative cursor-pointer rounded-2xl p-5 border transition-all text-left flex flex-col justify-between ${
+              className={`relative cursor-pointer rounded-2xl p-5 border transition-all text-left flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
                 isSelected
                   ? 'bg-gradient-to-br from-cyan-950/40 via-slate-900 to-slate-900 border-cyan-400 ring-2 ring-cyan-400/20 shadow-xl shadow-cyan-950/60'
                   : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90'

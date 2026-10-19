@@ -26,7 +26,6 @@ export const VerifyOtpPage: React.FC<VerifyOtpPageProps> = ({
   const [secondsLeft, setSecondsLeft] = useState(45);
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isExpired] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -105,11 +104,6 @@ export const VerifyOtpPage: React.FC<VerifyOtpPageProps> = ({
   };
 
   const verifyCode = async (code: string) => {
-    if (isExpired) {
-      setError('Verification code has expired. Please request a new code.');
-      return;
-    }
-
     setIsVerifying(true);
     setError(null);
 
@@ -198,6 +192,8 @@ export const VerifyOtpPage: React.FC<VerifyOtpPageProps> = ({
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
+                aria-label={`Verification code digit ${idx + 1} of 6`}
+                autoComplete={idx === 0 ? 'one-time-code' : 'off'}
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
