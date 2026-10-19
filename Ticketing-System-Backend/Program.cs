@@ -1,3 +1,4 @@
+using Ticketing_System_Backend.Data;
 using Ticketing_System_Backend.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,9 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddCorsPolicy();
 
 var app = builder.Build();
+
+// Auto-seed database and default administrator
+await DbInitializer.InitializeAsync(app.Services);
 
 // 3. HTTP Request Middleware Pipeline
 if (app.Environment.IsDevelopment())

@@ -7,4 +7,5 @@ public interface IAuthService
 {
     Task<RequestOtpResponse> RequestOtpAsync(RequestOtpRequest request);
     Task<AuthResponseDto> VerifyOtpAsync(VerifyOtpRequest request);
+    Task<AdminAuthResponse> AdminLoginAsync(AdminLoginRequest request);
 }

@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections.Generic;
 using Ticketing_System_Backend.Models.Dtos;
 using Ticketing_System_Backend.Models.Entities;
+using Ticketing_System_Backend.Models.Enums;
 using Ticketing_System_Backend.Repositories;
+using Ticketing_System_Backend.Utils;
 
 namespace Ticketing_System_Backend.Services;
 
@@ -140,13 +143,78 @@ public class AuthService : IAuthService
             PhoneNumber: user.PhoneNumber,
             CreditBalance: user.CreditBalance,
             PersistentQrToken: user.PersistentQrToken,
-            IsPhoneVerified: user.IsPhoneVerified
+            IsPhoneVerified: user.IsPhoneVerified,
+            Role: user.Role,
+            Email: user.Email,
+            UserName: user.UserName
         );
 
         return new AuthResponseDto(
             Success: true,
             Message: "Authentication successful.",
             Token: jwtToken,
+            User: profile
+        );
+    }
+
+    public async Task<AdminAuthResponse> AdminLoginAsync(AdminLoginRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.UsernameOrEmail) || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return new AdminAuthResponse(false, "Username/Email and password are required.", null, null);
+        }
+
+        var user = await _userRepository.GetByUsernameOrEmailAsync(request.UsernameOrEmail);
+        if (user == null)
+        {
+            _logger.LogWarning("Admin login failed: User '{Identifier}' not found in database.", request.UsernameOrEmail);
+            return new AdminAuthResponse(false, "Invalid administrator credentials.", null, null);
+        }
+
+        // Verify role
+        if (user.Role != (short)UserRole.Admin)
+        {
+            _logger.LogWarning("Admin login failed: User '{Identifier}' has role {Role}, required {Required}.", request.UsernameOrEmail, user.Role, (short)UserRole.Admin);
+            return new AdminAuthResponse(false, "Access denied. Account does not have administrator privileges.", null, null);
+        }
+
+        // Verify active status
+        if (!user.IsActive)
+        {
+            _logger.LogWarning("Admin login failed: User '{Identifier}' is inactive.", request.UsernameOrEmail);
+            return new AdminAuthResponse(false, "Administrator account has been suspended.", null, null);
+        }
+
+        // Verify password
+        bool pwdMatch = !string.IsNullOrEmpty(user.PasswordHash) && PasswordHelper.VerifyPassword(request.Password, user.PasswordHash);
+        if (!pwdMatch)
+        {
+            _logger.LogWarning("Admin login failed: Password mismatch for user '{Identifier}'.", request.UsernameOrEmail);
+            return new AdminAuthResponse(false, "Invalid administrator credentials.", null, null);
+        }
+
+        user.LastLoginAtUtc = DateTime.UtcNow;
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
+
+        string jwt = GenerateJwtToken(user);
+
+        var profile = new UserProfileDto(
+            Id: user.Id,
+            FullName: user.FullName,
+            PhoneNumber: user.PhoneNumber,
+            CreditBalance: user.CreditBalance,
+            PersistentQrToken: user.PersistentQrToken,
+            IsPhoneVerified: user.IsPhoneVerified,
+            Role: user.Role,
+            Email: user.Email,
+            UserName: user.UserName
+        );
+
+        return new AdminAuthResponse(
+            Success: true,
+            Message: "Administrator login successful.",
+            Token: jwt,
             User: profile
         );
     }
@@ -158,16 +226,22 @@ public class AuthService : IAuthService
         );
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.FullName),
             new Claim(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("UserType", "LocalUser"),
+            new Claim("UserType", user.Role == (short)UserRole.Admin ? "Administrator" : "LocalUser"),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (user.Role == (short)UserRole.Admin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+            claims.Add(new Claim("IsAdmin", "true"));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"] ?? "TicketingSystem",

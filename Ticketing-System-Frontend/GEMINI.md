@@ -297,11 +297,11 @@ The guest must select how long transport access is required before payment.
 Recommended initial periods:
 
 | Option | Duration |
-|---|---:|
-| 1 Day | 24 hours |
+| ------ | -------: |
+| 1 Day  | 24 hours |
 | 2 Days | 48 hours |
 | 3 Days | 72 hours |
-| 7 Days | 1 week |
+| 7 Days |   1 week |
 
 These options keep the selection simple while covering common short-term visitor requirements.
 
@@ -560,22 +560,22 @@ The transport verification system can use that token to query the backend and de
 
 # 18. Registered User vs Guest
 
-| Feature | Registered Local User | Guest / Visitor |
-|---|---|---|
-| Full name | Yes | No account profile required |
-| Phone verification | Yes, OTP | Not required for guest flow |
-| Permanent profile | Yes | No |
-| Internal identity | Permanent user ID | Temporary guest ID |
-| Device/session ID | Optional | Recommended for temporary session continuity |
-| Temporary transport token | **No** | **Yes** |
-| Account credit balance | Yes | No |
-| Top-up credits | Yes | Not applicable |
-| Persistent QR credential | Yes | No |
-| Guest access period selection | Not required for normal account use | Yes |
-| One-time purchase for access period | No; top up account credits instead | Yes |
-| QR reuse | Yes, while account is valid | Yes, during token validity window |
-| QR expiration | Based on account/credential status | Explicit `expiresAt` |
-| Long-term profile management | Yes | No |
+| Feature                             | Registered Local User               | Guest / Visitor                              |
+| ----------------------------------- | ----------------------------------- | -------------------------------------------- |
+| Full name                           | Yes                                 | No account profile required                  |
+| Phone verification                  | Yes, OTP                            | Not required for guest flow                  |
+| Permanent profile                   | Yes                                 | No                                           |
+| Internal identity                   | Permanent user ID                   | Temporary guest ID                           |
+| Device/session ID                   | Optional                            | Recommended for temporary session continuity |
+| Temporary transport token           | **No**                        | **Yes**                                |
+| Account credit balance              | Yes                                 | No                                           |
+| Top-up credits                      | Yes                                 | Not applicable                               |
+| Persistent QR credential            | Yes                                 | No                                           |
+| Guest access period selection       | Not required for normal account use | Yes                                          |
+| One-time purchase for access period | No; top up account credits instead  | Yes                                          |
+| QR reuse                            | Yes, while account is valid         | Yes, during token validity window            |
+| QR expiration                       | Based on account/credential status  | Explicit `expiresAt`                       |
+| Long-term profile management        | Yes                                 | No                                           |
 
 The key distinction is **persistent account + reusable QR + credits for local users** versus **temporary session + paid expiring token for guests**.
 
@@ -998,3 +998,82 @@ Backend QR validation
    ↓
 Transport access decision
 ```
+
+---
+
+# 29. Layout Architecture & Sidebar Separation
+
+To ensure a streamlined and focused user experience, the frontend implements three distinct layout paradigms:
+
+## 29.1 Visitor Pass Purchase Flow (Linear Wizard, No Sidebar)
+- **Routes:** `/guest-period`, `/checkout`, `/payment`, `/guest-qr`
+- **Philosophy:** Visitors require a frictionless, distraction-free checkout experience. A persistent sidebar adds cognitive load and navigation confusion for a transient user.
+- **Layout:** Standard full-width container with a lightweight top navigation bar (`Navbar.tsx`). Progress is communicated via linear step indicators (Duration Selection → Review Order → Payment → Active Pass).
+
+## 29.2 Commuter Portal (`CommuterSidebar.tsx`)
+- **Routes:** `/dashboard`, `/qr`, `/top-up`, `/profile`
+- **Philosophy:** Commuters return to the system repeatedly to monitor their balance, display their digital pass, reload credits, and inspect journey receipts.
+- **Layout:**
+  - Dedicated left navigation sidebar (`CommuterSidebar.tsx`) rendered exclusively when authenticated.
+  - Built with a sticky viewport container (`h-screen sticky top-0`) utilizing `min-h-0` flex child scrolling. This guarantees that navigation links, the wallet credit pill, user profile avatar, and sign-out controls remain fully visible on all display heights without clipping.
+  - Mobile responsiveness: Collapsible slide-over drawer triggered by a dedicated header burger button.
+
+## 29.3 Transit Authority Admin Console (`AdminSidebar.tsx` & `AdminLayout.tsx`)
+- **Routes:** `/admin/*`
+- **Philosophy:** Administrative personnel require an isolated, high-density operations command center.
+- **Layout:** Encapsulated in `AdminLayout.tsx` with a high-contrast dark theme sidebar (`AdminSidebar.tsx`), live telematics indicators, and zero contamination from commuter or visitor components.
+
+---
+
+# 30. Hardware Scanning & Turnstile Isolation Policy
+
+In real-world metropolitan transit networks:
+- **Passengers** present their mobile or physical QR credentials to optical turnstiles or conductor devices.
+- **Turnstile Gates & Optical Scanners** are physical station hardware operated by the transit provider.
+
+### Core Policy Enforced:
+1. **Zero Camera Scanners in Passenger Views:** Neither the public landing page, commuter dashboard, nor visitor pass checkout includes camera scanners, turnstile controls, or tap simulators.
+2. **Dedicated Admin Gate Simulator:** Turnstile tap simulation and HMAC signature validation are strictly isolated within the **Transit Authority Admin Console** (`/admin/dashboard` via `GateScannerModal.tsx`). This allows station supervisors and QA engineers to validate cryptographic token clearance without hardware.
+
+---
+
+# 31. Stored Credit, Wallet Top-Ups & Fare Rules
+
+## 31.1 Digital Stored-Value Wallet
+Local commuters manage an account-linked credit wallet:
+- Fares are automatically deducted at transit gates.
+- **Standard Metro Fare:** 150.00 Credits per journey (~$2.50 USD).
+- **Minimum Required Balance:** 150.00 Credits. Gates reject tap-in attempts if account balance is below the minimum fare.
+
+## 31.2 Volume Reload Bonus Tiers
+The `/top-up` view features pre-configured packages incentivizing upfront commuter commitments:
+- **500 Credits ($5.00):** Standard top-up.
+- **1,000 Credits ($10.00):** +50 Bonus Credits (1,050 total).
+- **2,500 Credits ($25.00):** +200 Bonus Credits (2,700 total).
+- **5,000 Credits ($50.00):** +500 Bonus Credits (5,500 total).
+
+## 31.3 Filterable Activity Ledger
+The commuter profile view (`ProfilePage.tsx`) provides an interactive transaction history with category filters:
+- **All Transactions:** Combined view of transit taps and wallet credits.
+- **Transit Rides Only:** Filtered list of metro journey deductions.
+- **Top-Ups Only:** Filtered list of credit reloads and bonus awards.
+
+---
+
+# 32. Transit Authority Admin Console & Role-Based Security
+
+## 32.1 Authentication & State Isolation
+- Administrator credentials and sessions are stored separately from commuter sessions:
+  - Commuter Session: `token` and `user` keys in `localStorage`.
+  - Administrator Session: `admin_token` and `admin_user` keys in `localStorage`.
+- Signing out from the commuter portal does not terminate an active admin session, and vice versa.
+
+## 32.2 Router Protection & Guards
+- All routes under `/admin/*` are shielded by route guards checking for a valid `admin_token` and `role === 2` (`UserRole.Admin`).
+- Unauthorized requests automatically redirect to `/admin/login`.
+
+## 32.3 Operations Capabilities
+- **Real-Time Network Telematics:** Total registered commuters, total circulating credit balance, active guest passes, network journeys, and collected fare revenue.
+- **Commuter Account Management:** Search commuters by name/phone/email, view persistent QR tokens, adjust credit balances with mandatory reason tracking, and toggle account activation status (*Active* vs. *Suspended*).
+- **Network Tap Stream:** Real-time visibility into recent turnstile tap events and passenger journeys.
+

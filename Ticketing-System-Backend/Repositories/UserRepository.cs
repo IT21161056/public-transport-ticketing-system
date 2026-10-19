@@ -28,6 +28,14 @@ public class UserRepository : IUserRepository
             (u.PhoneNumber == cleaned || u.PhoneNumber == phoneNumber));
     }
 
+    public async Task<User?> GetByUsernameOrEmailAsync(string identifier)
+    {
+        var clean = identifier.Trim().ToLowerInvariant();
+        return await _context.Users.FirstOrDefaultAsync(u => 
+            (u.UserName != null && u.UserName.ToLower() == clean) || 
+            (u.Email != null && u.Email.ToLower() == clean));
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         await _context.Users.AddAsync(user);

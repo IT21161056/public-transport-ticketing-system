@@ -3,5 +3,6 @@ export * from './Input';
 export * from './Navbar';
 export * from './FlowStepper';
 export * from './NotificationToast';
-export * from './Header';
 export * from './QRViewer';
+export * from './CommuterSidebar';
+export * from './AdminSidebar';

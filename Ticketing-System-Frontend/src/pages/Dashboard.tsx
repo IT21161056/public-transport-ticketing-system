@@ -6,7 +6,6 @@ import {
   ArrowUpRight, 
   Train, 
   Bus, 
-  Compass, 
   RefreshCw, 
   History, 
   UserCheck 
@@ -20,14 +19,12 @@ export interface DashboardProps {
   user: RegisteredUser;
   transactions: CreditTransaction[];
   onNavigate: (route: AppRoute) => void;
-  onOpenScanner?: (token: string) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   user,
   transactions,
   onNavigate,
-  onOpenScanner,
 }) => {
   const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
   const [isLoadingFleet, setIsLoadingFleet] = useState(false);
@@ -69,24 +66,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            variant="outline"
+            variant="primary"
             size="sm"
-            leftIcon={<QrCode className="w-4 h-4 text-emerald-400" />}
+            leftIcon={<QrCode className="w-4 h-4" />}
             onClick={() => onNavigate('account-qr')}
           >
-            Fullscreen Pass
+            My QR Pass
           </Button>
 
-          {onOpenScanner && (
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Compass className="w-4 h-4" />}
-              onClick={() => onOpenScanner(user.persistentQrToken)}
-            >
-              Simulate Gate Tap
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<CreditCard className="w-4 h-4 text-emerald-400" />}
+            onClick={() => onNavigate('account-credits')}
+          >
+            Top Up Credits
+          </Button>
         </div>
       </div>
 
@@ -259,14 +254,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table aria-label="Recent Account Transactions" className="w-full text-left text-xs">
               <thead className="text-slate-500 border-b border-slate-800 uppercase tracking-wider">
                 <tr>
-                  <th className="py-2 font-medium">Type</th>
-                  <th className="py-2 font-medium">Description</th>
-                  <th className="py-2 font-medium">Date</th>
-                  <th className="py-2 font-medium text-right">Amount</th>
-                  <th className="py-2 font-medium text-right">Balance</th>
+                  <th scope="col" className="py-2 font-medium">Type</th>
+                  <th scope="col" className="py-2 font-medium">Description</th>
+                  <th scope="col" className="py-2 font-medium">Date</th>
+                  <th scope="col" className="py-2 font-medium text-right">Amount</th>
+                  <th scope="col" className="py-2 font-medium text-right">Balance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">

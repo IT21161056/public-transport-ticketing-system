@@ -38,6 +38,14 @@ export const GateScannerModal: React.FC<GateScannerModalProps> = ({
 
   const [isValidating, setIsValidating] = useState(false);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handleScan = async (tokenToTest: string) => {
     const clean = tokenToTest.trim();
     if (!clean) return;
@@ -80,11 +88,17 @@ export const GateScannerModal: React.FC<GateScannerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scanner-dialog-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+    >
       <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800 transition-colors"
+          aria-label="Close turnstile simulator"
+          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -94,7 +108,7 @@ export const GateScannerModal: React.FC<GateScannerModalProps> = ({
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white tracking-tight">
+            <h3 id="scanner-dialog-title" className="text-lg font-bold text-white tracking-tight">
               Transit Gate Turnstile Simulator
             </h3>
             <p className="text-xs text-slate-400 font-mono">

@@ -51,4 +51,20 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Authenticates an administrator using Username/Email and password.
+    /// Default seed credentials: admin / admin123
+    /// </summary>
+    [HttpPost("admin-login")]
+    public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequest request)
+    {
+        var result = await _authService.AdminLoginAsync(request);
+        if (!result.Success)
+        {
+            return Unauthorized(result);
+        }
+
+        return Ok(result);
+    }
 }

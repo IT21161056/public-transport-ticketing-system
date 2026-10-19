@@ -8,7 +8,10 @@ public record UserProfileDto(
     string? PhoneNumber,
     decimal CreditBalance,
     string? PersistentQrToken,
-    bool IsPhoneVerified
+    bool IsPhoneVerified,
+    short Role = 0,
+    string? Email = null,
+    string? UserName = null
 );
 
 public record TopUpRequest(

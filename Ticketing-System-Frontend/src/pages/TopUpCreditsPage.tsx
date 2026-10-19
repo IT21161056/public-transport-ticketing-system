@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Coins, 
-  ArrowLeft, 
   ArrowRight, 
   CheckCircle2, 
   ShieldCheck, 
@@ -72,17 +71,25 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
           <div className="space-y-3">
             <button
               onClick={() => onNavigate('account-qr')}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
             >
               <span>View My Transport QR</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => onNavigate('profile')}
-              className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors"
-            >
-              Back to Profile
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => onNavigate('profile')}
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                View History
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -91,15 +98,6 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
 
   return (
     <div className="max-w-xl mx-auto w-full py-4 sm:py-6">
-      {/* Back button */}
-      <button
-        onClick={() => onNavigate('account-qr')}
-        className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to My QR</span>
-      </button>
-
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
         <div className="text-center mb-6">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center mb-3 border border-emerald-500/20">
@@ -129,18 +127,20 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
 
         {/* Preset Amounts Grid */}
         <div className="mb-6">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+          <label id="preset-amount-label" className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
             Select Top-Up Amount
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div role="radiogroup" aria-labelledby="preset-amount-label" className="grid grid-cols-2 gap-3">
             {TOP_UP_PRESETS.map((preset) => {
               const isSelected = selectedAmount === preset.amount;
               return (
                 <button
                   key={preset.amount}
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => setSelectedAmount(preset.amount)}
-                  className={`relative p-3.5 rounded-xl border text-left transition-all ${
+                  className={`relative p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-emerald-950/40 border-emerald-400 ring-2 ring-emerald-400/20'
                       : 'bg-slate-950 border-slate-800 hover:border-slate-700'
@@ -163,14 +163,16 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
 
         {/* Payment Method selector */}
         <div className="mb-6">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <label id="payment-method-label" className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
             Payment Method
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div role="radiogroup" aria-labelledby="payment-method-label" className="grid grid-cols-2 gap-2">
             <button
               type="button"
+              role="radio"
+              aria-checked={method === 'card'}
               onClick={() => setMethod('card')}
-              className={`p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all ${
+              className={`p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all cursor-pointer ${
                 method === 'card'
                   ? 'bg-emerald-500/10 border-emerald-400 text-emerald-300'
                   : 'bg-slate-950 border-slate-800 text-slate-400'
@@ -181,8 +183,10 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
             </button>
             <button
               type="button"
+              role="radio"
+              aria-checked={method === 'apple_pay'}
               onClick={() => setMethod('apple_pay')}
-              className={`p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all ${
+              className={`p-3 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all cursor-pointer ${
                 method === 'apple_pay'
                   ? 'bg-emerald-500/10 border-emerald-400 text-emerald-300'
                   : 'bg-slate-950 border-slate-800 text-slate-400'
