@@ -38,6 +38,7 @@ import {
 import { getOrCreateDeviceUuid } from './utils/deviceUuid';
 import { tokenApi } from './api/tokenApi';
 import { ROUTE_PATHS, ADMIN_PATHS, pathToRoute, homePathFor } from './routes';
+import { TicketInspectionPage } from './pages/TicketInspectionPage';
 
 export function App() {
   const { theme, toggleTheme } = useTheme();
@@ -219,6 +220,7 @@ export function App() {
             >
               <Routes>
                 <Route index element={<AdminDashboard user={adminUser} onOpenScanner={() => handleOpenScanner()} />} />
+                <Route path="inspection" element={<TicketInspectionPage />} />
                 <Route path="*" element={<Navigate to={ADMIN_PATHS.home} replace />} />
               </Routes>
 
