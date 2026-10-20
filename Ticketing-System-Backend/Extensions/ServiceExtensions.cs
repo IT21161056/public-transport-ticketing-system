@@ -6,6 +6,9 @@ using Ticketing_System_Backend.Data;
 using Ticketing_System_Backend.Repositories;
 using Ticketing_System_Backend.Services;
 using Ticketing_System_Backend.Services.Fare;
+using Ticketing_System_Backend.Services.Inspection;
+using Ticketing_System_Backend.Services.Inspection.Rules;
+using Ticketing_System_Backend.Services.Reporting;
 
 namespace Ticketing_System_Backend.Extensions;
 
@@ -34,6 +37,8 @@ public static class ServiceExtensions
         services.AddScoped<IOtpRepository, OtpRepository>();
         services.AddScoped<ITokenRepository, TokenRepository>();
         services.AddScoped<IJourneyRepository, JourneyRepository>();
+        services.AddScoped<IInspectionRepository, InspectionRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
 
         return services;
     }
@@ -48,6 +53,19 @@ public static class ServiceExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddSingleton<DistanceBasedFareStrategy>();
         services.AddSingleton<FlatRateFareStrategy>();
+
+        // Ticket inspection: rule chain handlers (Chain of Responsibility) and settings
+        services.AddOptions<InspectionOptions>().BindConfiguration(InspectionOptions.SectionName);
+        services.AddScoped<TokenSignatureRule>();
+        services.AddScoped<AccountStatusRule>();
+        services.AddScoped<ActiveJourneyRule>();
+        services.AddScoped<StaleJourneyRule>();
+        services.AddScoped<IInspectionService, InspectionService>();
+
+        // Transport Manager reports
+        services.AddOptions<ReportingOptions>().BindConfiguration(ReportingOptions.SectionName);
+        services.AddScoped<IReportService, ReportService>();
+        services.AddHostedService<ReportDemoDataSeeder>();
 
         return services;
     }

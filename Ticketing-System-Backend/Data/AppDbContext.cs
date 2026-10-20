@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<OtpVerification> OtpVerifications => Set<OtpVerification>();
     public DbSet<TransportToken> TransportTokens => Set<TransportToken>();
     public DbSet<Journey> Journeys => Set<Journey>();
+    public DbSet<TicketInspection> TicketInspections => Set<TicketInspection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +104,32 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Token)
                   .WithMany()
                   .HasForeignKey(e => e.TokenId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TicketInspection>(entity =>
+        {
+            entity.ToTable("ticket_inspections");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.TokenIdentifier).HasColumnName("token_identifier").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.TokenType).HasColumnName("token_type").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.DeviceUuid).HasColumnName("device_uuid").HasMaxLength(100);
+            entity.Property(e => e.JourneyId).HasColumnName("journey_id");
+            entity.Property(e => e.Result).HasColumnName("result");
+            entity.Property(e => e.Location).HasColumnName("location").HasMaxLength(100);
+            entity.Property(e => e.InspectorId).HasColumnName("inspector_id");
+            entity.Property(e => e.InspectedAtUtc).HasColumnName("inspected_at_utc");
+            entity.Ignore(e => e.IsValid);
+
+            entity.HasIndex(e => e.InspectedAtUtc);
+            entity.HasIndex(e => new { e.TokenIdentifier, e.InspectedAtUtc });
+
+            entity.HasOne(e => e.Journey)
+                  .WithMany()
+                  .HasForeignKey(e => e.JourneyId)
                   .OnDelete(DeleteBehavior.SetNull);
         });
     }
