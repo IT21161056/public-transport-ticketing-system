@@ -52,24 +52,40 @@ public class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Increases account balance after payment gateway confirmation.
+    /// Sequence Diagram: RegisteredPassenger.topUpAccount(amount, method, paymentDetails)
+    /// Creates a TopUpTransaction, resolves the TopUpChannel via TopUpChannelFactory,
+    /// processes payment via PaymentGateway, and updates Account balance & transaction ledger.
     /// </summary>
     [HttpPost("topup")]
+    [AllowAnonymous]
     public async Task<IActionResult> TopUp([FromBody] TopUpRequest request)
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-        {
-            return Unauthorized(new { message = "Invalid token claims." });
-        }
+        var userId = GetCurrentUserId() ?? request.UserId ?? Guid.Empty;
 
-        var result = await _accountService.TopUpAsync(userId.Value, request.Amount, request.PaymentReference);
-        if (!result.Success)
+        var result = await _accountService.TopUpAccountAsync(userId, request);
+        if (!result.Success && result.Transaction == null)
         {
             return BadRequest(result);
         }
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Returns the commuter's top-up transaction ledger (including both SUCCESS and FAILED attempts).
+    /// </summary>
+    [HttpGet("topup-history")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopUpHistory([FromQuery] Guid? userId = null)
+    {
+        var resolvedUserId = GetCurrentUserId() ?? userId;
+        if (resolvedUserId == null || resolvedUserId == Guid.Empty)
+        {
+            return Ok(Array.Empty<TopUpTransactionDto>());
+        }
+
+        var transactions = await _accountService.GetTopUpHistoryAsync(resolvedUserId.Value);
+        return Ok(transactions);
     }
 
     /// <summary>

@@ -24,4 +24,24 @@ public class User
     // Navigation properties
     public ICollection<Journey> Journeys { get; set; } = new List<Journey>();
     public ICollection<TransportToken> Tokens { get; set; } = new List<TransportToken>();
+    public ICollection<TopUpTransaction> TopUpTransactions { get; set; } = new List<TopUpTransaction>();
+
+    /// <summary>
+    /// Sequence Diagram Step 12-13: account.topUp(amount) -> balanceUpdated
+    /// </summary>
+    public decimal TopUp(decimal amount)
+    {
+        CreditBalance += amount;
+        UpdatedAtUtc = DateTime.UtcNow;
+        return CreditBalance;
+    }
+
+    /// <summary>
+    /// Sequence Diagram Steps 14-15 & 19-20: account.addTransaction(tx) -> transactionRecorded / failedAttemptRecorded
+    /// </summary>
+    public void AddTransaction(TopUpTransaction tx)
+    {
+        tx.UserId = Id;
+        TopUpTransactions.Add(tx);
+    }
 }
