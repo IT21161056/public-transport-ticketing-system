@@ -1,15 +1,26 @@
+using Microsoft.Extensions.Options;
+
 namespace Ticketing_System_Backend.Services.Fare;
 
 /// <summary>
-/// Flat-Rate / Pass-Based Fare Strategy:
-/// Used for Guest Pass Users with pre-paid unlimited passes. The fare deducted per journey is 0.00.
+/// Flat-Rate Fare Strategy: every journey costs the same, however far the passenger travels.
+/// Selected with "Fare:Policy": "Flat" for cities that charge a single fare.
 /// </summary>
 public class FlatRateFareStrategy : IFareStrategy
 {
-    public string StrategyName => "Flat-Rate/Pass-Based";
+    private readonly FareOptions _options;
 
-    public decimal CalculateFare(string tapInStation, string? tapOutStation)
+    public FlatRateFareStrategy(IOptions<FareOptions> options)
     {
-        return 0.00m;
+        _options = options.Value;
+    }
+
+    public string StrategyName => "Flat-Rate";
+
+    public decimal MaximumFare => _options.FlatFare;
+
+    public decimal CalculateFare(FareContext context)
+    {
+        return _options.FlatFare;
     }
 }

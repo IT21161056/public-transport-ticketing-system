@@ -9,6 +9,7 @@ using Ticketing_System_Backend.Services.Fare;
 using Ticketing_System_Backend.Services.Inspection;
 using Ticketing_System_Backend.Services.Inspection.Rules;
 using Ticketing_System_Backend.Services.Reporting;
+using Ticketing_System_Backend.Services.Tap;
 
 namespace Ticketing_System_Backend.Extensions;
 
@@ -39,6 +40,7 @@ public static class ServiceExtensions
         services.AddScoped<IJourneyRepository, JourneyRepository>();
         services.AddScoped<IInspectionRepository, InspectionRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<ITransitRepository, TransitRepository>();
 
         return services;
     }
@@ -51,8 +53,26 @@ public static class ServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
+
+        // Fare policy per city (Strategy + Factory Method), checked at startup so a bad "Fare:Policy" fails fast
+        services.AddOptions<FareOptions>()
+            .BindConfiguration(FareOptions.SectionName)
+            .Validate(o => FareStrategyFactory.IsKnownPolicy(o.Policy), "Fare:Policy must be 'DistanceBased' or 'Flat'.")
+            .Validate(o => o.BaseFare >= 0 && o.RatePerStop >= 0 && o.FlatFare >= 0, "Fare amounts cannot be negative.")
+            .Validate(o => o.MaxFare >= o.BaseFare, "Fare:MaxFare must be at least Fare:BaseFare.")
+            .ValidateOnStart();
         services.AddSingleton<DistanceBasedFareStrategy>();
         services.AddSingleton<FlatRateFareStrategy>();
+        services.AddSingleton<PrepaidPassFareStrategy>();
+        services.AddSingleton<IFareStrategyFactory, FareStrategyFactory>();
+
+        // Bus boarding reader: Tap In / Tap Out
+        services.AddOptions<TapOptions>()
+            .BindConfiguration(TapOptions.SectionName)
+            .Validate(o => o.MinimumBalance >= 0 && o.DuplicateTapSeconds >= 0 && o.SameStopCancelMinutes >= 0,
+                "Tap settings cannot be negative.")
+            .ValidateOnStart();
+        services.AddScoped<ITapService, TapService>();
 
         // Ticket inspection: rule chain handlers (Chain of Responsibility) and settings
         services.AddOptions<InspectionOptions>().BindConfiguration(InspectionOptions.SectionName);

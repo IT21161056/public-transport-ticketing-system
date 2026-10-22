@@ -23,6 +23,9 @@ public static class DbInitializer
             // Ensure schema exists in PostgreSQL
             await context.Database.EnsureCreatedAsync();
 
+            // Bus routes, stops and buses for the boarding reader
+            await TransitNetworkSeeder.SeedAsync(context);
+
             // 1. Seed Administrator User (admin / admin123)
             var adminUser = await context.Users.FirstOrDefaultAsync(u => 
                 u.Role == (short)UserRole.Admin || 

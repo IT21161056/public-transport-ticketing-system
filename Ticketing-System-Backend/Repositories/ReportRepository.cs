@@ -30,7 +30,8 @@ public class ReportRepository : IReportRepository
     {
         return await _context.Journeys
             .AsNoTracking()
-            .Where(j => j.Status == JourneyStatus.Completed
+            // Incomplete journeys were charged the maximum fare when closed, so they count as revenue too
+            .Where(j => (j.Status == JourneyStatus.Completed || j.Status == JourneyStatus.Incomplete)
                 && j.TapOutTimeUtc >= fromUtc && j.TapOutTimeUtc < toUtc)
             .ToListAsync();
     }

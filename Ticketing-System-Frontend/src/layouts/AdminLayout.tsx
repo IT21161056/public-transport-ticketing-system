@@ -37,6 +37,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   const getTabTitle = (tab: AdminTab) => {
     if (pathname === '/admin/inspection') return 'Ticket Inspection';
+    if (pathname === '/admin/reader') return 'Bus Boarding Reader';
     if (pathname === '/admin/reports') return 'Manager Reports';
     switch (tab) {
       case 'users':

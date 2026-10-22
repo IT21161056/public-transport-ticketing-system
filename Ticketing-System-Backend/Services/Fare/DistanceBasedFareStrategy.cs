@@ -1,31 +1,30 @@
 using System;
+using Microsoft.Extensions.Options;
 
 namespace Ticketing_System_Backend.Services.Fare;
 
 /// <summary>
-/// Distance-Based Fare Strategy:
-/// Used for Local Users, calculated at Tap-Out based on journey stations.
+/// Distance-Based Fare Strategy (Oyster-style, the brief's default):
+/// fare = base fare + stops travelled x rate per stop, capped at the maximum fare.
+/// Stops travelled comes from the stop order on the route, so the same trip always costs the same.
 /// </summary>
 public class DistanceBasedFareStrategy : IFareStrategy
 {
+    private readonly FareOptions _options;
+
+    public DistanceBasedFareStrategy(IOptions<FareOptions> options)
+    {
+        _options = options.Value;
+    }
+
     public string StrategyName => "Distance-Based";
 
-    private const decimal BaseFare = 40.00m;
-    private const decimal StationRate = 15.00m;
+    public decimal MaximumFare => _options.MaxFare;
 
-    public decimal CalculateFare(string tapInStation, string? tapOutStation)
+    public decimal CalculateFare(FareContext context)
     {
-        if (string.IsNullOrWhiteSpace(tapOutStation) ||
-            string.Equals(tapInStation, tapOutStation, StringComparison.OrdinalIgnoreCase))
-        {
-            return BaseFare;
-        }
-
-        // Deterministic hash distance approximation between station names
-        int hash1 = Math.Abs(tapInStation.Trim().ToUpperInvariant().GetHashCode());
-        int hash2 = Math.Abs(tapOutStation.Trim().ToUpperInvariant().GetHashCode());
-        int stationCount = (Math.Abs(hash1 - hash2) % 6) + 1; // 1 to 6 station difference
-
-        return BaseFare + (stationCount * StationRate);
+        int stops = Math.Max(0, context.StopsTravelled);
+        decimal fare = _options.BaseFare + (stops * _options.RatePerStop);
+        return Math.Min(fare, _options.MaxFare);
     }
 }

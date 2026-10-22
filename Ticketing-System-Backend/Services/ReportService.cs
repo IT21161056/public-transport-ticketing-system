@@ -65,7 +65,7 @@ public class ReportService : IReportService
             TotalJourneys: journeys.Count,
             LocalJourneys: journeys.Count(j => j.UserId != null),
             GuestJourneys: journeys.Count(j => j.UserId == null),
-            IncompleteJourneys: journeys.Count(j => j.Status == JourneyStatus.InProgress),
+            IncompleteJourneys: journeys.Count(j => j.Status == JourneyStatus.InProgress || j.Status == JourneyStatus.Incomplete),
             ByStation: byStation,
             ByHourOfDay: byHour,
             ByDayOfWeek: byDay);
