@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<TransportToken> TransportTokens => Set<TransportToken>();
     public DbSet<Journey> Journeys => Set<Journey>();
     public DbSet<TicketInspection> TicketInspections => Set<TicketInspection>();
+    public DbSet<TopUpTransaction> TopUpTransactions => Set<TopUpTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +51,11 @@ public class AppDbContext : DbContext
                   .WithOne(t => t.User)
                   .HasForeignKey(t => t.UserId)
                   .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(e => e.TopUpTransactions)
+                  .WithOne(t => t.User)
+                  .HasForeignKey(t => t.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<OtpVerification>(entity =>
@@ -133,6 +139,27 @@ public class AppDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.JourneyId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TopUpTransaction>(entity =>
+        {
+            entity.ToTable("top_up_transactions");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Amount).HasColumnName("amount").HasPrecision(10, 2);
+            entity.Property(e => e.BonusAmount).HasColumnName("bonus_amount").HasPrecision(10, 2).HasDefaultValue(0.00m);
+            entity.Property(e => e.TotalCredits).HasColumnName("total_credits").HasPrecision(10, 2);
+            entity.Property(e => e.Method).HasColumnName("method").HasMaxLength(30).IsRequired();
+            entity.Property(e => e.ChannelName).HasColumnName("channel_name").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.PaymentReference).HasColumnName("payment_reference").HasMaxLength(100);
+            entity.Property(e => e.FailureReason).HasColumnName("failure_reason").HasMaxLength(255);
+            entity.Property(e => e.BalanceAfter).HasColumnName("balance_after").HasPrecision(10, 2);
+            entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at_utc");
+
+            entity.HasIndex(e => new { e.UserId, e.CreatedAtUtc });
         });
     }
 }

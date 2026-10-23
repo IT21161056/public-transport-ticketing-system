@@ -24,9 +24,26 @@ public static class DbInitializer
             logger?.LogInformation("Applying automatic database migrations...");
             await context.Database.MigrateAsync();
 
+            // Ensure top_up_transactions table exists even on pre-existing PostgreSQL volumes
+            await context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS top_up_transactions (
+                    id uuid PRIMARY KEY,
+                    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    amount numeric(10,2) NOT NULL,
+                    bonus_amount numeric(10,2) NOT NULL DEFAULT 0.00,
+                    total_credits numeric(10,2) NOT NULL,
+                    method character varying(30) NOT NULL,
+                    channel_name character varying(50) NOT NULL,
+                    status character varying(20) NOT NULL,
+                    payment_reference character varying(100),
+                    failure_reason character varying(255),
+                    balance_after numeric(10,2) NOT NULL,
+                    created_at_utc timestamp with time zone NOT NULL
+                );
+            ");
+
             // 1. Seed Administrator User (admin / admin123)
             var adminUser = await context.Users.FirstOrDefaultAsync(u => 
-                u.Role == (short)UserRole.Admin || 
                 u.UserName == "admin" || 
                 u.Email == "admin@urbantransit.com");
 
