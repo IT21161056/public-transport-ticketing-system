@@ -44,7 +44,6 @@ public static class DbInitializer
 
             // 1. Seed Administrator User (admin / admin123)
             var adminUser = await context.Users.FirstOrDefaultAsync(u => 
-                u.Role == (short)UserRole.Admin || 
                 u.UserName == "admin" || 
                 u.Email == "admin@urbantransit.com");
 
