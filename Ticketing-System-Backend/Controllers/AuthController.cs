@@ -53,6 +53,27 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Step 3 & 4 (Path A Commuter Registration): Finalize commuter registration,
+    /// load initial credit balance (min LKR 500) and issue active AccountLinkedToken.
+    /// </summary>
+    [HttpPost("complete-registration")]
+    public async Task<IActionResult> CompleteRegistration([FromBody] CompleteRegistrationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            return BadRequest(new AuthResponseDto(false, "Phone number is required.", null, null));
+        }
+
+        var result = await _authService.CompleteRegistrationAsync(request);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Authenticates an administrator using Username/Email and password.
     /// Default seed credentials: admin / admin123
     /// </summary>

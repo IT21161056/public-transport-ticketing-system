@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home,
@@ -50,6 +50,7 @@ export function App() {
     setToastCode,
     requestOtp,
     verifyOtp,
+    completeRegistration,
     logout,
     updateUserState,
   } = useAuth();
@@ -81,7 +82,54 @@ export function App() {
     setTransactions(getTransactions());
   };
 
+  // Flow 1 Step 4: Storage & Auto-Recovery
+  // Whenever a visitor reopens the portal on their phone, the system checks their Device ID
+  // and automatically restores their active QR code and remaining validity time without needing a login.
+  useEffect(() => {
+    if (!user) {
+      const deviceUuid = getOrCreateDeviceUuid();
+      tokenApi
+        .getActiveGuestPass(deviceUuid)
+        .then((activeRes) => {
+          if (activeRes.success && activeRes.data) {
+            const pass = activeRes.data;
+            const days = pass.passTier.includes('7') ? 7 : pass.passTier.includes('3') ? 3 : 1;
+            const guestTok: GuestTransportToken = {
+              tokenId: pass.signedToken,
+              guestId: pass.deviceUuid,
+              orderId: `ORD-${pass.id.slice(0, 8)}`,
+              days: days as AccessDurationDays,
+              durationLabel: pass.passTier,
+              price: 0,
+              issuedAt: new Date().toISOString(),
+              startsAt: new Date().toISOString(),
+              expiresAt: pass.expiresAtUtc,
+              status: 'active',
+              scanCount: 0,
+              signedToken: pass.signedToken,
+            };
+            setActiveGuestToken(guestTok);
+          }
+        })
+        .catch(() => {
+          const localTokens = getGuestTokens();
+          if (localTokens.length > 0) {
+            const valid = localTokens.find((t) => new Date(t.expiresAt).getTime() > Date.now());
+            if (valid) {
+              setActiveGuestToken(valid);
+            }
+          }
+        });
+    }
+  }, [user]);
+
   const handleStartGuest = async () => {
+    // If active guest pass is already restored, show it immediately
+    if (activeGuestToken && new Date(activeGuestToken.expiresAt).getTime() > Date.now()) {
+      goTo('guest-qr');
+      return;
+    }
+
     const deviceUuid = getOrCreateDeviceUuid();
     try {
       const activeRes = await tokenApi.getActiveGuestPass(deviceUuid);
@@ -292,9 +340,16 @@ export function App() {
                   }}
                   onVerifyCode={async (code: string) => {
                     const res = await verifyOtp(code);
-                    if (res.success) {
+                    if (res.success && otpData.mode === 'login') {
                       refreshGuestAndTxs();
                       goTo('dashboard');
+                    }
+                    return res;
+                  }}
+                  onCompleteRegistration={async (phone, name, credit, medium, payMethod) => {
+                    const res = await completeRegistration(phone, name, credit, medium, payMethod);
+                    if (res.success) {
+                      refreshGuestAndTxs();
                     }
                     return res;
                   }}
@@ -340,6 +395,7 @@ export function App() {
                     onNavigate={goTo}
                     onStartGuest={handleStartGuest}
                     user={user}
+                    activeGuestPass={activeGuestToken}
                   />
                 }
               />
@@ -394,7 +450,13 @@ export function App() {
               {/* Guest Visitor Flows */}
               <Route
                 path={ROUTE_PATHS.guest}
-                element={<Navigate to={ROUTE_PATHS['guest-period']} replace />}
+                element={
+                  activeGuestToken && new Date(activeGuestToken.expiresAt).getTime() > Date.now() ? (
+                    <Navigate to={ROUTE_PATHS['guest-qr']} replace />
+                  ) : (
+                    <Navigate to={ROUTE_PATHS['guest-period']} replace />
+                  )
+                }
               />
 
               <Route

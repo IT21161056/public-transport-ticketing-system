@@ -162,6 +162,49 @@ npm run dev
 
 ---
 
+## 🗄️ Database Migrations Workflow (EF Core)
+
+UrbanTransit uses standard Entity Framework Core migrations with automatic application on startup.
+
+### How Automatic Migrations Work
+When the backend application starts up (`dotnet run`), [DbInitializer.cs](file:///c:/My%20Folder/projects/Ticketing-System/Ticketing-System-Backend/Data/DbInitializer.cs) executes:
+```csharp
+await context.Database.MigrateAsync();
+```
+This automatically compares your migration files against PostgreSQL's `__EFMigrationsHistory` table and applies any pending migrations without requiring manual database commands.
+
+### Steps When Changing Schema / Entities
+Whenever you modify an entity in `Ticketing-System-Backend/Models/Entities/` or update configurations in `AppDbContext.cs`, follow this 3-step workflow:
+
+1. **Update Entity or DbContext**:
+   Modify the C# entity properties or entity configurations.
+
+2. **Generate Migration**:
+   Ensure the backend is stopped, then create a new migration:
+   ```bash
+   # From repository root:
+   dotnet ef migrations add <DescriptiveMigrationName> --project Ticketing-System-Backend
+
+   # Or from inside Ticketing-System-Backend/:
+   dotnet ef migrations add <DescriptiveMigrationName>
+   ```
+   > **Example:** `dotnet ef migrations add AddNfcCardUidToUser --project Ticketing-System-Backend`
+
+3. **Run the Application**:
+   ```bash
+   dotnet run --project Ticketing-System-Backend
+   ```
+   The backend will automatically detect the new migration and apply it to PostgreSQL on startup.
+
+### Quick Migration Commands
+| Goal | Command |
+| :--- | :--- |
+| **List migrations** | `dotnet ef migrations list --project Ticketing-System-Backend` |
+| **Apply migrations manually** | `dotnet ef database update --project Ticketing-System-Backend` |
+| **Remove last unapplied migration** | `dotnet ef migrations remove --project Ticketing-System-Backend` |
+
+---
+
 ## 🔑 Default Credentials & Test Data
 
 ### Administrator Access

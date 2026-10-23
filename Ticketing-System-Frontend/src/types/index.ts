@@ -31,6 +31,7 @@ export interface RegisteredUser {
   role?: number | string; // 2: Admin, 1: Inspector, 0: Commuter
   email?: string;
   userName?: string;
+  tokenMedium?: string;
 }
 
 export interface GuestSession {

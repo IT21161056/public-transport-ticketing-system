@@ -20,8 +20,9 @@ public static class DbInitializer
 
         try
         {
-            // Ensure schema exists in PostgreSQL
-            await context.Database.EnsureCreatedAsync();
+            // Run automatic database migrations
+            logger?.LogInformation("Applying automatic database migrations...");
+            await context.Database.MigrateAsync();
 
             // Ensure top_up_transactions table exists even on pre-existing PostgreSQL volumes
             await context.Database.ExecuteSqlRawAsync(@"

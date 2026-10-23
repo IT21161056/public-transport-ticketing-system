@@ -46,8 +46,9 @@ namespace Ticketing_System_Backend.Migrations
                     updated_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_login_at_utc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     user_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    credit_balance = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false, defaultValue: 1250.00m),
+                    credit_balance = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false, defaultValue: 0.00m),
                     persistent_qr_token = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    token_medium = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true, defaultValue: "Digital QR"),
                     is_phone_verified = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -64,6 +65,7 @@ namespace Ticketing_System_Backend.Migrations
                     device_uuid = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     token_type = table.Column<int>(type: "integer", nullable: false),
                     pass_tier = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    medium = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true, defaultValue: "Digital QR"),
                     signed_token = table.Column<string>(type: "text", nullable: false),
                     nonce = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),

@@ -11,7 +11,8 @@ public record UserProfileDto(
     bool IsPhoneVerified,
     short Role = 0,
     string? Email = null,
-    string? UserName = null
+    string? UserName = null,
+    string? TokenMedium = "Digital QR"
 );
 
 public record TopUpPaymentDetailsDto(

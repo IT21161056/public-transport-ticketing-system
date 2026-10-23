@@ -7,7 +7,8 @@ public record GenerateTokenResponse(
     string TokenType,
     DateTime? ExpiresAtUtc,
     string Nonce,
-    string QrPayload
+    string QrPayload,
+    string? Medium = "Digital QR"
 );
 
 public record GuestPassPurchaseRequest(

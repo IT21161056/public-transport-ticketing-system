@@ -17,7 +17,7 @@ namespace Ticketing_System_Backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.13")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -229,6 +229,13 @@ namespace Ticketing_System_Backend.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<string>("Medium")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Digital QR")
+                        .HasColumnName("medium");
+
                     b.Property<string>("Nonce")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -275,7 +282,7 @@ namespace Ticketing_System_Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
-                        .HasDefaultValue(1250.00m)
+                        .HasDefaultValue(0.00m)
                         .HasColumnName("credit_balance");
 
                     b.Property<string>("Email")
@@ -325,6 +332,13 @@ namespace Ticketing_System_Backend.Migrations
                         .HasColumnType("smallint")
                         .HasDefaultValue((short)0)
                         .HasColumnName("role");
+
+                    b.Property<string>("TokenMedium")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Digital QR")
+                        .HasColumnName("token_medium");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone")
