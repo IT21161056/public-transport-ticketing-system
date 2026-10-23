@@ -14,20 +14,21 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { AppRoute, RegisteredUser, CreditTransaction, VehicleDto } from '../types';
 import Button from '../components/Button';
 import { vehicleApi } from '../api/vehicleApi';
+import { accountApi, type TopUpTransactionRecord } from '../api/accountApi';
 
 export interface DashboardProps {
   user: RegisteredUser;
-  transactions: CreditTransaction[];
+  transactions?: CreditTransaction[];
   onNavigate: (route: AppRoute) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   user,
-  transactions,
   onNavigate,
 }) => {
   const [vehicles, setVehicles] = useState<VehicleDto[]>([]);
   const [isLoadingFleet, setIsLoadingFleet] = useState(false);
+  const [topUpRecords, setTopUpRecords] = useState<TopUpTransactionRecord[]>([]);
 
   const loadFleet = async () => {
     setIsLoadingFleet(true);
@@ -43,7 +44,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     loadFleet();
-  }, []);
+    accountApi
+      .getTopUpHistory(user.userId)
+      .then((res) => {
+        if (res.success && res.data.length > 0) {
+          setTopUpRecords(res.data);
+        } else {
+          const localLog = localStorage.getItem('urban_transit_topup_tx_log');
+          if (localLog) {
+            try {
+              setTopUpRecords(JSON.parse(localLog));
+            } catch {}
+          }
+        }
+      })
+      .catch(() => {});
+  }, [user.userId]);
 
   return (
     <div className="max-w-6xl mx-auto w-full py-6 space-y-6">
@@ -248,9 +264,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </button>
         </div>
 
-        {transactions.length === 0 ? (
+        {topUpRecords.length === 0 ? (
           <div className="text-center py-6 text-xs text-slate-500">
-            No transit ride deductions or top-ups recorded yet.
+            No credit top-up transactions recorded yet.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -258,36 +274,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <thead className="text-slate-500 border-b border-slate-800 uppercase tracking-wider">
                 <tr>
                   <th scope="col" className="py-2 font-medium">Type</th>
-                  <th scope="col" className="py-2 font-medium">Description</th>
+                  <th scope="col" className="py-2 font-medium">Channel / Ref</th>
                   <th scope="col" className="py-2 font-medium">Date</th>
                   <th scope="col" className="py-2 font-medium text-right">Amount</th>
                   <th scope="col" className="py-2 font-medium text-right">Balance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {transactions.slice(0, 5).map((t) => (
+                {topUpRecords.slice(0, 5).map((t) => (
                   <tr key={t.id} className="text-slate-300 hover:bg-slate-800/30">
                     <td className="py-2.5 font-medium">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono ${
-                          t.type === 'topup'
+                          t.status === 'SUCCESS'
                             ? 'bg-emerald-950 text-emerald-400 border border-emerald-900'
-                            : 'bg-cyan-950 text-cyan-400 border border-cyan-900'
+                            : 'bg-rose-950 text-rose-400 border border-rose-900'
                         }`}
                       >
-                        {t.type === 'topup' ? '+ TOP UP' : '- FARE'}
+                        {t.status === 'SUCCESS' ? '+ TOP UP' : 'FAILED'}
                       </span>
                     </td>
-                    <td className="py-2.5 text-slate-200">{t.description}</td>
+                    <td className="py-2.5 text-slate-200">
+                      <span className="font-semibold">{t.channelName}</span>
+                      {t.paymentReference && (
+                        <span className="text-slate-400 font-mono text-[11px] block sm:inline sm:ml-2">
+                          {t.paymentReference}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2.5 text-slate-400 font-mono text-[11px]">
-                      {new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(t.createdAtUtc).toLocaleDateString([], { month: 'short', day: 'numeric' })}{' '}
+                      {new Date(t.createdAtUtc).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                     <td
                       className={`py-2.5 font-mono font-bold text-right ${
-                        t.type === 'topup' ? 'text-emerald-400' : 'text-slate-300'
+                        t.status === 'SUCCESS' ? 'text-emerald-400' : 'text-rose-400 line-through'
                       }`}
                     >
-                      {t.type === 'topup' ? `+${t.amount.toFixed(2)}` : `-${t.amount.toFixed(2)}`}
+                      +{t.totalCredits.toFixed(2)}
                     </td>
                     <td className="py-2.5 font-mono text-slate-400 text-right">
                       {t.balanceAfter.toFixed(2)}

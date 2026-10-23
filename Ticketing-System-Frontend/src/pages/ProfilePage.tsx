@@ -1,44 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Phone, 
   ShieldCheck, 
   Coins, 
   PlusCircle, 
   QrCode, 
-  TrendingDown,
   TrendingUp,
-  Clock,
+  AlertCircle,
+  RefreshCw,
   Calendar
 } from 'lucide-react';
 import type { RegisteredUser, AppRoute, CreditTransaction } from '../types';
 import { STANDARD_RIDE_FARE } from '../utils/storage';
+import { accountApi, type TopUpTransactionRecord } from '../api/accountApi';
 
 interface ProfilePageProps {
   user: RegisteredUser;
-  transactions: CreditTransaction[];
+  transactions?: CreditTransaction[];
   onNavigate: (route: AppRoute) => void;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
   user,
-  transactions,
   onNavigate,
 }) => {
-  const [filter, setFilter] = useState<'all' | 'topup' | 'deduction'>('all');
+  const [records, setRecords] = useState<TopUpTransactionRecord[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [filter, setFilter] = useState<'all' | 'SUCCESS' | 'FAILED'>('all');
+
   const isLowBalance = (user.creditBalance ?? 0) < STANDARD_RIDE_FARE;
 
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return 'Just now';
+    try {
+      return new Date(isoString).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return isoString;
+    }
   };
 
-  const filteredTransactions = transactions.filter((tx) => {
+  const fetchHistory = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await accountApi.getTopUpHistory(user.userId);
+      if (res.success && res.data.length > 0) {
+        setRecords(res.data);
+      } else {
+        // Fallback to local transaction log if available
+        const localLog = localStorage.getItem('urban_transit_topup_tx_log');
+        if (localLog) {
+          try {
+            setRecords(JSON.parse(localLog));
+          } catch {
+            setRecords([]);
+          }
+        } else {
+          setRecords([]);
+        }
+      }
+    } catch {
+      const localLog = localStorage.getItem('urban_transit_topup_tx_log');
+      if (localLog) {
+        try {
+          setRecords(JSON.parse(localLog));
+        } catch {
+          setRecords([]);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user.userId]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  const filteredRecords = records.filter((r) => {
     if (filter === 'all') return true;
-    return tx.type === filter;
+    return r.status === filter;
   });
 
   return (
@@ -125,17 +170,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
       </div>
 
-      {/* Credit Transactions & Ride History */}
+      {/* Credit & Top-Up History Ledger */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-emerald-400" />
+            <Coins className="w-5 h-5 text-emerald-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">
-              Transit & Credit History
+              Credit & Top-Up History
             </h2>
             <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
-              {transactions.length}
+              {records.length}
             </span>
+            <button
+              onClick={fetchHistory}
+              disabled={isLoading}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors ml-1 cursor-pointer"
+              title="Refresh transactions"
+              aria-label="Refresh transactions"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
 
           {/* Filter Tabs */}
@@ -148,88 +202,143 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              All Activity
+              All Records
             </button>
             <button
-              onClick={() => setFilter('deduction')}
+              onClick={() => setFilter('SUCCESS')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filter === 'deduction'
-                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-800 font-semibold shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Rides Only
-            </button>
-            <button
-              onClick={() => setFilter('topup')}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filter === 'topup'
+                filter === 'SUCCESS'
                   ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Top-Ups Only
+              Successful
+            </button>
+            <button
+              onClick={() => setFilter('FAILED')}
+              className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
+                filter === 'FAILED'
+                  ? 'bg-rose-950 text-rose-300 border border-rose-800 font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Failed
             </button>
           </div>
         </div>
 
-        {filteredTransactions.length === 0 ? (
+        {isLoading ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+            <RefreshCw className="w-6 h-6 animate-spin text-emerald-400" />
+            <span className="text-xs">Loading transaction ledger...</span>
+          </div>
+        ) : filteredRecords.length === 0 ? (
           <div className="bg-slate-950/40 border border-slate-800/60 border-dashed rounded-2xl p-8 text-center">
             <Coins className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-            <h4 className="text-sm font-semibold text-white">No Transactions Recorded</h4>
+            <h4 className="text-sm font-semibold text-white">No Credit Transactions Found</h4>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
               {filter === 'all'
-                ? `Your account is ready with ${(user.creditBalance ?? 0).toFixed(2)} credits. Tap at turnstiles to start riding!`
-                : `No ${filter === 'topup' ? 'top-up reloads' : 'transit ride deductions'} found.`}
+                ? `You have not made any credit top-ups yet. Reload credits using Online Card, Mobile Wallet, or PayStation Kiosks.`
+                : `No ${filter === 'SUCCESS' ? 'successful' : 'declined / failed'} top-up records found.`}
             </p>
+            {filter === 'all' && (
+              <button
+                onClick={() => onNavigate('account-credits')}
+                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-semibold cursor-pointer transition-colors"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Top Up Credits Now</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="bg-slate-950/60 border border-slate-800 rounded-2xl divide-y divide-slate-800/80 overflow-hidden">
-            {filteredTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="p-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors text-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                    tx.type === 'topup'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                  }`}>
-                    {tx.type === 'topup' ? (
-                      <TrendingUp className="w-4 h-4" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4" />
-                    )}
+            {filteredRecords.map((tx) => {
+              const isSuccess = tx.status === 'SUCCESS';
+              return (
+                <div
+                  key={tx.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/30 transition-colors text-xs"
+                >
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
+                        isSuccess
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                      }`}
+                    >
+                      {isSuccess ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-white text-sm">
+                          {tx.channelName || tx.method}
+                        </span>
+                        <span
+                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                            isSuccess
+                              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                          }`}
+                        >
+                          {tx.status}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 uppercase">
+                          {tx.method}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="flex items-center gap-1 font-mono text-slate-400">
+                          <Calendar className="w-3 h-3 text-slate-500" />
+                          {formatDate(tx.createdAtUtc)}
+                        </span>
+                        {tx.paymentReference && (
+                          <>
+                            <span className="text-slate-600">•</span>
+                            <span className="font-mono text-slate-400">
+                              Ref: {tx.paymentReference}
+                            </span>
+                          </>
+                        )}
+                        {tx.failureReason && (
+                          <span className="text-rose-400 block w-full sm:w-auto mt-0.5">
+                            ({tx.failureReason})
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-semibold text-white block">{tx.description}</span>
-                    <span className="text-[11px] text-slate-500 font-mono flex items-center gap-2 mt-0.5">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(tx.timestamp)}
-                      </span>
-                      <span>•</span>
-                      <span>Ref: {tx.id.slice(-8)}</span>
+
+                  <div className="text-left sm:text-right shrink-0 font-mono pl-12 sm:pl-0 border-t sm:border-t-0 border-slate-900 pt-2 sm:pt-0">
+                    <span
+                      className={`text-sm font-bold block ${
+                        isSuccess ? 'text-emerald-400' : 'text-rose-400 line-through'
+                      }`}
+                    >
+                      +{tx.totalCredits.toFixed(2)} Credits
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      Added {tx.amount.toFixed(2)}
+                      {tx.bonusAmount > 0 ? ` (+${tx.bonusAmount.toFixed(2)} Bonus)` : ''}
+                    </span>
+                    <span className="text-[10px] text-slate-500 block">
+                      Bal: {tx.balanceAfter.toFixed(2)} Cr
                     </span>
                   </div>
                 </div>
-
-                <div className="text-right">
-                  <span className={`font-mono font-bold text-sm block ${
-                    tx.type === 'topup' ? 'text-emerald-400' : 'text-slate-200'
-                  }`}>
-                    {tx.type === 'topup' ? `+${tx.amount.toFixed(2)}` : `-${tx.amount.toFixed(2)}`}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Bal: {tx.balanceAfter.toFixed(2)} Cr
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
 };
+
+export default ProfilePage;

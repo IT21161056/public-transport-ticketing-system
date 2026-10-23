@@ -886,16 +886,23 @@ export const TopUpCreditsPage: React.FC<TopUpCreditsPageProps> = ({
       {/* Recorded TopUpTransaction Ledger (shows both SUCCESS and FAILED attempts from account.addTransaction(tx)) */}
       {txHistory.length > 0 && (
         <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-emerald-400" />
               <h3 className="text-sm font-bold text-white">
-                Account Top-Up Transaction Log (TopUpTransaction)
+                Recent Top-Up Reloads
               </h3>
+              <span className="text-[11px] font-mono text-slate-400">
+                ({txHistory.length})
+              </span>
             </div>
-            <span className="text-[11px] font-mono text-slate-400">
-              {txHistory.length} {txHistory.length === 1 ? 'record' : 'records'}
-            </span>
+            <button
+              onClick={() => onNavigate('profile')}
+              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+            >
+              <span>View Full Credit History in Profile</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
