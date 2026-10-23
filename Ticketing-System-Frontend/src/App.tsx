@@ -13,7 +13,6 @@ import {
   CheckoutPage,
   PaymentPage,
   GuestQrPage,
-  GateScannerModal,
   AdminDashboard,
   AdminLogin 
 } from './pages';
@@ -75,8 +74,6 @@ export function App() {
   const [guestTokens, setGuestTokens] = useState<GuestTransportToken[]>(() => getGuestTokens());
   const [activeGuestToken, setActiveGuestToken] = useState<GuestTransportToken | null>(null);
   const [transactions, setTransactions] = useState<CreditTransaction[]>(() => getTransactions());
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [scannerToken, setScannerToken] = useState<string>('');
 
   const refreshGuestAndTxs = () => {
     setGuestTokens(getGuestTokens());
@@ -206,10 +203,6 @@ export function App() {
     goTo('guest-qr');
   };
 
-  const handleOpenScanner = (token?: string) => {
-    setScannerToken(token || user?.persistentQrToken || 'MET-SAMPLE-TOKEN');
-    setIsScannerOpen(true);
-  };
 
   // Stepper progress for guest flow
   const guestSteps = [
@@ -266,24 +259,16 @@ export function App() {
                 adminLogout();
                 navigate(ADMIN_PATHS.login, { replace: true });
               }}
-              onOpenScanner={() => handleOpenScanner()}
+              theme={theme}
+              onToggleTheme={toggleTheme}
             >
               <Routes>
-                <Route index element={<AdminDashboard user={adminUser} onOpenScanner={() => handleOpenScanner()} />} />
+                <Route index element={<AdminDashboard user={adminUser} />} />
                 <Route path="inspection" element={<TicketInspectionPage />} />
                 <Route path="reader" element={<BoardingReaderPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="*" element={<Navigate to={ADMIN_PATHS.home} replace />} />
               </Routes>
-
-              {/* Floating Gate Scanner Modal for Admin Test Clearance */}
-              {isScannerOpen && (
-                <GateScannerModal
-                  initialToken={scannerToken}
-                  onClose={() => setIsScannerOpen(false)}
-                  onScanCompleted={refreshGuestAndTxs}
-                />
-              )}
             </AdminLayout>
           ) : (
             <Navigate to={ADMIN_PATHS.login} replace />

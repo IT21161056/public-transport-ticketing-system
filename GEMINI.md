@@ -32,7 +32,7 @@ UrbanTransit is a modern, privacy-preserving contactless public transport ticket
    - Role-authorized JWT access control (`UserRole.Admin` = 2, `UserRole.Inspector` = 1).
    - Real-time network telematics: circulating commuter credit float, active guest pass fleet, total tap journeys, and system revenue.
    - Passenger account auditing: balance adjustments with audit reason logging, and account freeze/unfreeze controls.
-   - Station turnstile tap simulator for hardware testing and gate clearance inspection.
+   - Dedicated Bus Boarding Reader (`/admin/reader`) for Tap In / Tap Out validation and Ticket Inspection (`/admin/inspection`) console.
 
 ---
 
@@ -46,7 +46,7 @@ Transit authorities should only collect data strictly necessary to provide trave
 ### 2.2 Physical Hardware Scanning Separation Policy
 In public transit networks, turnstile gate scanners and optical readers are physical station infrastructure (or handheld ticket inspector devices). They are **not** commuter-facing or visitor-facing features:
 - **Passenger Web Client:** Strictly displays QR credentials, handles wallet top-ups, and facilitates pass checkouts. No camera scanners, turnstile simulation widgets, or gate testing tools exist anywhere in passenger views (Landing, Commuter Hub, or Visitor Pass screens).
-- **Admin Operations Console:** Hosts the isolated **Turnstile Gate Tap Simulator** allowing transit engineers and operators to simulate optical gate taps and verify HMAC cryptographic signatures without deploying physical hardware.
+- **Admin Operations Console:** Hosts the **Bus Boarding Reader** (`/admin/reader`) and **Ticket Inspection** (`/admin/inspection`) tools allowing transit operators to execute authentic Tap In / Tap Out journeys and cryptographic verification.
 
 ### 2.3 Cryptographic Token Security
 All QR passes displayed on mobile devices or printed passes carry tamper-evident signatures:
@@ -101,7 +101,7 @@ Ticketing-System/
 │   │   │   ├── AdminSidebar.tsx      # High-density operations console navigation
 │   │   │   ├── Navbar.tsx            # Clean visitor & public landing header
 │   │   │   ├── QRViewer.tsx          # High-contrast SVG QR with PNG download
-│   │   │   └── GateScannerModal.tsx  # Turnstile clearance validation simulator (Admin only)
+│   │   │   └── QrScanInput.tsx       # Handheld scanner camera & optical input
 │   │   ├── layouts/
 │   │   │   ├── MainLayout.tsx        # Responsive layout wrapping Commuter & Visitor views
 │   │   │   └── AdminLayout.tsx       # Isolated enterprise operations console layout
@@ -118,7 +118,10 @@ Ticketing-System/
 │   │   │   ├── PaymentPage.tsx       # Mock payment gateway (Cards, Apple Pay, Google Pay)
 │   │   │   ├── GuestQrPage.tsx       # Active visitor pass with live countdown clock
 │   │   │   ├── AdminLogin.tsx        # Dedicated administrator authentication view
-│   │   │   └── AdminDashboard.tsx    # Live operations control center & user auditing
+│   │   │   ├── AdminDashboard.tsx    # Live operations control center & user auditing
+│   │   │   ├── BoardingReaderPage.tsx# Dedicated Bus Boarding Reader (Tap In / Tap Out)
+│   │   │   ├── TicketInspectionPage.tsx # Field ticket inspection console
+│   │   │   └── ReportsPage.tsx       # Operational & revenue reporting
 │   │   ├── routes.ts                 # Centralized type-safe route definitions
 │   │   ├── types.ts                  # Shared TypeScript contracts & domain DTOs
 │   │   └── App.tsx                   # Master router tree, auth guards & layout bindings
@@ -162,7 +165,7 @@ flowchart TD
     AdminJWT --> AdminConsole[Operations Console with Admin Sidebar]
     AdminConsole --> Metrics[Network Telematics]
     AdminConsole --> UserAudit[User Credit & Status Auditing]
-    AdminConsole --> SimGate[Turnstile Hardware Simulator]
+    AdminConsole --> SimGate[Bus Boarding Reader & Inspection]
 ```
 
 ---
@@ -198,7 +201,7 @@ To maintain professional, industry-standard UX, user interfaces are strictly dif
 | **Layout Template** | `MainLayout` with `CommuterSidebar` | `MainLayout` with top `Navbar` (no sidebar) | `AdminLayout` with `AdminSidebar` |
 | **Sidebar Behavior** | Desktop 64-column fixed sidebar, mobile slide drawer, `min-h-0` flex scroll | **No Sidebar** (clean full-width checkout wizard) | High-contrast dark operations sidebar with telematics badges |
 | **Token Storage** | `token` + `user` in `localStorage` | `device_uuid` + `guest_pass` in `localStorage` | `admin_token` + `admin_user` in `localStorage` |
-| **Primary Interaction** | Digital wallet, persistent pass, trip ledger | Linear checkout & active pass countdown | Live network metrics, user account audits, turnstile tap tests |
+| **Primary Interaction** | Digital wallet, persistent pass, trip ledger | Linear checkout & active pass countdown | Live network metrics, user account audits, boarding reader taps & ticket inspection |
 
 ---
 

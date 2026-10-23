@@ -239,19 +239,48 @@ export const BoardingReaderPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
-      {/* Title */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <Bus className="w-5 h-5 text-purple-400" />
-          Bus Boarding Reader
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Passengers tap the same QR ticket when getting on and off. The fare is charged at tap-out.
-        </p>
+    <div className="w-full space-y-6 sm:space-y-8">
+      {/* Operations Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-300 text-xs font-medium">
+              <Bus className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Turnstile & On-Bus Boarding Terminal</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <span>Bus Boarding Reader</span>
+              <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono flex items-center gap-1.5 font-normal">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Terminal Online
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+              Simulates physical contactless boarding gates and on-bus NFC/optical readers. Passengers tap at entry (Tap In)
+              and exit (Tap Out); distance fares are deducted atomically at tap-out.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-center shrink-0">
+            <div className="px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 font-mono">
+              <span className="text-slate-500">Fare Policy:</span> <span className="text-cyan-300 font-semibold">{network.farePolicy}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadNetwork()}
+              className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white cursor-pointer transition-colors"
+              title="Refresh network configuration"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         {/* ===== Reader setup: bus and its current stop ===== */}
         <section className="space-y-4 min-w-0">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-4">
@@ -413,7 +442,7 @@ const ReaderScreen: React.FC<ReaderScreenProps> = ({ screen, stopName, onDismiss
   if (screen.kind === 'ready') {
     return (
       <div className="min-h-[320px] flex flex-col items-center justify-center gap-3 px-6 py-8 text-center">
-        <ScanLine className="w-14 h-14 text-purple-400 animate-pulse" />
+        <ScanLine className="w-14 h-14 text-purple-400" />
         <div className="text-lg font-bold text-slate-100">Ready to scan</div>
         <div className="text-xs text-slate-400">Hold your QR ticket to the reader</div>
         <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-900 border border-slate-800 px-3 py-1 text-[11px] text-slate-300">

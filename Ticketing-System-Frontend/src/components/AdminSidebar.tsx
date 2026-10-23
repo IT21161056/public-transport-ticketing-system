@@ -2,11 +2,9 @@ import React from 'react';
 import { 
   Shield, 
   LayoutDashboard,
-  Radio,
   LogOut,
   X, 
   ChevronRight, 
-  Sparkles, 
   Server,
   Activity
 } from 'lucide-react';
@@ -22,7 +20,6 @@ export interface AdminSidebarProps {
   onSelectTab: (tab: AdminTab) => void;
   admin: RegisteredUser;
   onLogout: () => void;
-  onOpenScanner?: () => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
 }
@@ -32,7 +29,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onSelectTab,
   admin,
   onLogout,
-  onOpenScanner,
   isOpenMobile = false,
   onCloseMobile,
 }) => {
@@ -178,33 +174,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           );
         })}
 
-        {/* Section: Operational Tools */}
-        <div className="pt-2">
-          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            System Testing
-          </div>
-          {onOpenScanner && (
-            <button
-              onClick={() => {
-                if (onCloseMobile) onCloseMobile();
-                onOpenScanner();
-              }}
-              // Opens a modal rather than a page, so it never shows an active state
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/70 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-900/60 flex items-center justify-center text-purple-400">
-                  <Radio className="w-3.5 h-3.5" />
-                </div>
-                <div className="text-left leading-tight">
-                  <div className="font-semibold">Gate Tap Simulator</div>
-                  <div className="text-[10px] text-slate-500">Test turnstile validation</div>
-                </div>
-              </div>
-              <Sparkles className="w-3.5 h-3.5 text-slate-600 group-hover:text-purple-400 group-hover:rotate-12 transition-all" />
-            </button>
-          )}
-        </div>
 
         {/* Section: Field Operations (Ticket Inspector) */}
         <div className="pt-2">

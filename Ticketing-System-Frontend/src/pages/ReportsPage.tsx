@@ -25,18 +25,18 @@ function formatLkr(amount: number): string {
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm hover:border-slate-700/80 transition-all">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</div>
-      <div className="mt-1 text-xl font-bold text-white tabular-nums">{value}</div>
-      {hint && <div className="mt-0.5 text-[11px] text-slate-500">{hint}</div>}
+      <div className="mt-2 text-2xl font-bold font-mono text-white tabular-nums">{value}</div>
+      {hint && <div className="mt-1 text-[11px] text-slate-500">{hint}</div>}
     </div>
   );
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-      <h2 className="mb-3 text-sm font-semibold text-white">{title}</h2>
+    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur-sm p-5 sm:p-6 shadow-md">
+      <h2 className="mb-4 text-sm font-bold text-white flex items-center justify-between border-b border-slate-800/80 pb-3">{title}</h2>
       {children}
     </section>
   );
@@ -226,15 +226,37 @@ export const ReportsPage: React.FC = () => {
   const current = tab === 'ridership' ? ridership : tab === 'revenue' ? revenue : evasion;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5">
-      <div>
-        <h1 className="flex items-center gap-2 text-xl font-bold text-white">
-          <BarChart3 className="h-5 w-5 text-purple-400" />
-          Manager Reports
-        </h1>
-        <p className="mt-1 text-xs text-slate-400">
-          Ridership, fare revenue and fare evasion for planning timetables, finances and inspector deployment.
-        </p>
+    <div className="w-full space-y-6 sm:space-y-8">
+      {/* Operations Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/70 border border-purple-800/60 text-purple-300 text-xs font-medium">
+              <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
+              <span>Transport Authority Analytics</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <span>Operational & Revenue Reports</span>
+              <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono flex items-center gap-1.5 font-normal">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Live Telematics
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+              High-resolution passenger ridership density, collected fare revenue, and inspection evasion analytics
+              for transit capacity planning and inspector scheduling.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-center shrink-0">
+            <div className="px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 font-mono">
+              <span className="text-slate-500">Period:</span> {from || 'Last 30 Days'} {to ? `→ ${to}` : ''}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Period filter */}
@@ -243,72 +265,72 @@ export const ReportsPage: React.FC = () => {
           e.preventDefault();
           void load(tab, from, to);
         }}
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4"
+        className="flex flex-wrap items-end gap-3 rounded-3xl border border-slate-800 bg-slate-900/70 backdrop-blur-sm p-4 sm:p-5 shadow-md"
       >
         <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          From
+          From Date
           <input
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-purple-500 focus:outline-none"
+            className="mt-1.5 block rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-purple-500 focus:outline-none transition-colors"
           />
         </label>
         <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          To
+          To Date
           <input
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-purple-500 focus:outline-none"
+            className="mt-1.5 block rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-purple-500 focus:outline-none transition-colors"
           />
         </label>
         <button
           type="submit"
           disabled={loading}
-          className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 disabled:opacity-60 cursor-pointer"
+          className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer shadow-md shadow-purple-950/40 transition-all"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          Apply
+          Apply Range
         </button>
-        <span className="text-[11px] text-slate-500">Leave both empty for the last 30 days.</span>
+        <span className="text-[11px] text-slate-500 pb-2">Leave blank to default to rolling 30-day telematics.</span>
       </form>
 
       {/* Report tabs */}
-      <div className="flex gap-2 overflow-x-auto">
+      <div className="flex gap-2.5 overflow-x-auto pb-1">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             aria-current={tab === id ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold cursor-pointer ${
+            className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold cursor-pointer transition-all ${
               tab === id
-                ? 'border-purple-500/40 bg-purple-500/10 text-white'
-                : 'border-slate-800 text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                ? 'border-purple-500/50 bg-purple-500/15 text-white shadow-sm shadow-purple-950/50'
+                : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:bg-slate-900 hover:text-slate-200 hover:border-slate-700'
             }`}
           >
-            <Icon className="h-3.5 w-3.5" />
-            {label}
+            <Icon className="h-4 w-4 text-purple-400" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-2xl border border-rose-900/50 bg-rose-950/30 p-4 text-sm text-rose-300">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          {error}
+        <div className="flex items-start gap-2.5 rounded-2xl border border-rose-900/50 bg-rose-950/30 p-4 text-sm text-rose-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+          <span>{error}</span>
         </div>
       )}
 
       {current && (
-        <p className="text-[11px] text-slate-500">
-          Period {current.period.from} to {current.period.to} ({current.period.timeZone})
+        <p className="text-[11px] text-slate-500 font-mono">
+          Telematics Window: {current.period.from} to {current.period.to} ({current.period.timeZone})
         </p>
       )}
 
       {loading && !current && (
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading report…
+        <div className="flex items-center gap-2 py-12 justify-center text-sm text-slate-400">
+          <Loader2 className="h-5 w-5 animate-spin text-purple-400" /> Loading telematics dataset…
         </div>
       )}
 

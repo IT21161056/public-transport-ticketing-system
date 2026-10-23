@@ -31,12 +31,10 @@ import Button from '../components/Button';
 
 export interface AdminDashboardProps {
   user: RegisteredUser | null;
-  onOpenScanner?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   user,
-  onOpenScanner,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab: 'overview' | 'users' | 'journeys' | 'passes' =
@@ -170,7 +168,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [users, searchTerm, roleFilter, statusFilter]);
 
   return (
-    <div className="max-w-7xl mx-auto w-full py-4 sm:py-6 space-y-8 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 sm:space-y-8">
       {/* Toast Notification */}
       {notification && (
         <div
@@ -206,7 +204,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
               <span>Network Operations & User Admin</span>
               <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono flex items-center gap-1.5 font-normal">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 Live Grid Active
               </span>
             </h1>
@@ -380,7 +378,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {journeys.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-500">
-                  No journeys recorded yet. Tap QR in the Gate Simulator to test.
+                  No journeys recorded yet.
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -478,27 +476,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           </div>
 
-          {/* Quick Action Banner */}
-          <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900/90 border border-purple-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <Shield className="w-4 h-4 text-purple-400" />
-                <span>Simulate Turnstile Gate Clearance</span>
-              </h4>
-              <p className="text-xs text-slate-400 mt-1">
-                Test commuter wallet tap-in / tap-out or visitor guest passes in real-time.
-              </p>
-            </div>
-            {onOpenScanner && (
-              <button
-                onClick={onOpenScanner}
-                className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-purple-950/50 transition-all cursor-pointer"
-              >
-                <Radio className="w-3.5 h-3.5" />
-                <span>Launch Gate Simulator</span>
-              </button>
-            )}
-          </div>
         </div>
       )}
 
@@ -690,7 +667,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   {journeys.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-10 text-slate-400 font-sans">
-                        No transit journeys recorded yet. Tap a QR code via Gate Simulator to populate live events.
+                        No transit journeys recorded yet.
                       </td>
                     </tr>
                   ) : (

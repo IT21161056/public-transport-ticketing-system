@@ -19,7 +19,6 @@ export const ROUTE_PATHS: Record<AppRoute, string> = {
   'guest-checkout': '/guest/checkout',
   'guest-payment': '/guest/payment',
   'guest-qr': '/guest/qr',
-  scanner: '/scanner',
 };
 
 /**

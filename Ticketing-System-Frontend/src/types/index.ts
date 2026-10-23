@@ -77,8 +77,7 @@ export type AppRoute =
   | 'guest-period'    // /guest/access-period
   | 'guest-checkout'  // /guest/checkout
   | 'guest-payment'   // /guest/payment
-  | 'guest-qr'        // /guest/qr
-  | 'scanner';        // /access/status: Turnstile simulator
+  | 'guest-qr';       // /guest/qr
 
 // ==========================================
 // Vehicle & Transit Network Types

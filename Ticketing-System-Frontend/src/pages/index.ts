@@ -10,6 +10,5 @@ export * from './GuestPeriodPage';
 export * from './CheckoutPage';
 export * from './PaymentPage';
 export * from './GuestQrPage';
-export * from './GateScannerModal';
 export * from './AdminLogin';
 export * from './AdminDashboard';
