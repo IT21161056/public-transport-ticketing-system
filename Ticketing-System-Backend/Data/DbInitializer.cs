@@ -20,8 +20,9 @@ public static class DbInitializer
 
         try
         {
-            // Ensure schema exists in PostgreSQL
-            await context.Database.EnsureCreatedAsync();
+            // Run automatic database migrations
+            logger?.LogInformation("Applying automatic database migrations...");
+            await context.Database.MigrateAsync();
 
             // 1. Seed Administrator User (admin / admin123)
             var adminUser = await context.Users.FirstOrDefaultAsync(u => 

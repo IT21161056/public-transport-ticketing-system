@@ -36,8 +36,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UpdatedAtUtc).HasColumnName("updated_at_utc");
             entity.Property(e => e.LastLoginAtUtc).HasColumnName("last_login_at_utc");
             entity.Property(e => e.UserCode).HasColumnName("user_code").HasMaxLength(50);
-            entity.Property(e => e.CreditBalance).HasColumnName("credit_balance").HasPrecision(10, 2).HasDefaultValue(1250.00m);
+            entity.Property(e => e.CreditBalance).HasColumnName("credit_balance").HasPrecision(10, 2).HasDefaultValue(0.00m);
             entity.Property(e => e.PersistentQrToken).HasColumnName("persistent_qr_token").HasMaxLength(255);
+            entity.Property(e => e.TokenMedium).HasColumnName("token_medium").HasMaxLength(50).HasDefaultValue("Digital QR");
             entity.Property(e => e.IsPhoneVerified).HasColumnName("is_phone_verified").HasDefaultValue(false);
 
             entity.HasMany(e => e.Journeys)
@@ -77,6 +78,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DeviceUuid).HasColumnName("device_uuid").HasMaxLength(100);
             entity.Property(e => e.TokenType).HasColumnName("token_type");
             entity.Property(e => e.PassTier).HasColumnName("pass_tier").HasMaxLength(20);
+            entity.Property(e => e.Medium).HasColumnName("medium").HasMaxLength(50).HasDefaultValue("Digital QR");
             entity.Property(e => e.SignedToken).HasColumnName("signed_token").IsRequired();
             entity.Property(e => e.Nonce).HasColumnName("nonce").HasMaxLength(50).IsRequired();
             entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);

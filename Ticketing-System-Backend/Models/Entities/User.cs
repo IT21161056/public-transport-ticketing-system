@@ -17,8 +17,9 @@ public class User
     public DateTime? UpdatedAtUtc { get; set; }
     public DateTime? LastLoginAtUtc { get; set; }
     public string? UserCode { get; set; }
-    public decimal CreditBalance { get; set; } = 1250.00m;
+    public decimal CreditBalance { get; set; } = 0.00m;
     public string? PersistentQrToken { get; set; }
+    public string? TokenMedium { get; set; } = "Digital QR";
     public bool IsPhoneVerified { get; set; } = false;
 
     // Navigation properties

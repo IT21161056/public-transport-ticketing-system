@@ -26,7 +26,7 @@ public class TokenService : ITokenService
         _signingSecret = configuration["Jwt:Key"] ?? "TicketingSystemSecretKeyForQrAndTokens2026!#";
     }
 
-    public async Task<GenerateTokenResponse> GetOrCreateLocalTokenAsync(Guid userId)
+    public async Task<GenerateTokenResponse> GetOrCreateLocalTokenAsync(Guid userId, string? medium = null)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
@@ -42,10 +42,12 @@ public class TokenService : ITokenService
                 TokenType: "LocalUser",
                 ExpiresAtUtc: existing.ExpiresAtUtc,
                 Nonce: existing.Nonce,
-                QrPayload: existing.SignedToken
+                QrPayload: existing.SignedToken,
+                Medium: existing.Medium ?? user.TokenMedium ?? "Digital QR"
             );
         }
 
+        string tokenMedium = !string.IsNullOrWhiteSpace(medium) ? medium : (user.TokenMedium ?? "Digital QR");
         string nonce = Guid.NewGuid().ToString("N")[..8];
         long expiryEpoch = 0; // Permanent account token
         string signedString = SignPayload("LOCAL", userId.ToString(), expiryEpoch, nonce);
@@ -54,6 +56,7 @@ public class TokenService : ITokenService
         {
             UserId = userId,
             TokenType = TokenType.LocalUser,
+            Medium = tokenMedium,
             SignedToken = signedString,
             Nonce = nonce,
             IsActive = true,
@@ -63,8 +66,9 @@ public class TokenService : ITokenService
 
         await _tokenRepository.CreateAsync(token);
 
-        // Update user's persistent token reference
+        // Update user's persistent token reference and medium
         user.PersistentQrToken = signedString;
+        user.TokenMedium = tokenMedium;
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveChangesAsync();
 
@@ -73,7 +77,8 @@ public class TokenService : ITokenService
             TokenType: "LocalUser",
             ExpiresAtUtc: null,
             Nonce: nonce,
-            QrPayload: signedString
+            QrPayload: signedString,
+            Medium: tokenMedium
         );
     }
 
