@@ -391,12 +391,16 @@ export function App() {
               <Route
                 path="/"
                 element={
-                  <Home
-                    onNavigate={goTo}
-                    onStartGuest={handleStartGuest}
-                    user={user}
-                    activeGuestPass={activeGuestToken}
-                  />
+                  user ? (
+                    <Navigate to={ROUTE_PATHS.dashboard} replace />
+                  ) : (
+                    <Home
+                      onNavigate={goTo}
+                      onStartGuest={handleStartGuest}
+                      user={user}
+                      activeGuestPass={activeGuestToken}
+                    />
+                  )
                 }
               />
 
