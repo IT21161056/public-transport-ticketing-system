@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import type { RegisteredUser } from '../types';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ScanLine } from 'lucide-react';
+import { ScanLine, Bus } from 'lucide-react';
 import { BarChart3 } from 'lucide-react';
 
 export type AdminTab = 'overview' | 'users' | 'journeys' | 'passes';
@@ -44,6 +44,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isInspectionActive = pathname === '/admin/inspection';
+  const isReaderActive = pathname === '/admin/reader';
   const isReportsActive = pathname === '/admin/reports';
 
   React.useEffect(() => {
@@ -129,7 +130,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
         {menuItems.map((item) => {
           const Icon = item.icon;
-          // Dashboard tabs only count as active on the dashboard itself, not on /admin/inspection or /admin/reports
+          // Dashboard tabs only count as active on the dashboard itself, not on /admin/inspection, /admin/reader or /admin/reports
           const isActive = currentTab === item.id && (pathname === '/admin' || pathname === '/admin/');
           return (
             <button
@@ -228,6 +229,26 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <div className="text-left leading-tight">
               <div className="font-semibold">Ticket Inspection</div>
               <div className="text-[10px] text-slate-500">Scan passenger QR tokens</div>
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              navigate('/admin/reader');
+            }}
+            aria-current={isReaderActive ? 'page' : undefined}
+            className={`mt-1 w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+              isReaderActive
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-100 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/70'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-lg bg-slate-900/60 flex items-center justify-center text-emerald-400">
+              <Bus className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left leading-tight">
+              <div className="font-semibold">Bus Boarding Reader</div>
+              <div className="text-[10px] text-slate-500">Tap in / tap out & fares</div>
             </div>
           </button>
         </div>

@@ -22,12 +22,57 @@ namespace Ticketing_System_Backend.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.Bus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("RegistrationNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("registration_number");
+
+                    b.Property<Guid>("RouteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("route_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegistrationNumber")
+                        .IsUnique();
+
+                    b.HasIndex("RouteId");
+
+                    b.ToTable("buses", (string)null);
+                });
+
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.Journey", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid?>("AlightingStopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("alighting_stop_id");
+
+                    b.Property<Guid?>("BoardingStopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("boarding_stop_id");
+
+                    b.Property<Guid?>("BusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("bus_id");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
@@ -45,9 +90,22 @@ namespace Ticketing_System_Backend.Migrations
                         .HasDefaultValue(0.00m)
                         .HasColumnName("fare_amount");
 
+                    b.Property<string>("FarePolicy")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("fare_policy");
+
+                    b.Property<Guid?>("RouteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("route_id");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
+
+                    b.Property<int?>("StopsTravelled")
+                        .HasColumnType("integer")
+                        .HasColumnName("stops_travelled");
 
                     b.Property<string>("TapInStation")
                         .IsRequired()
@@ -78,9 +136,19 @@ namespace Ticketing_System_Backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AlightingStopId");
+
+                    b.HasIndex("BoardingStopId");
+
+                    b.HasIndex("BusId");
+
+                    b.HasIndex("RouteId");
+
                     b.HasIndex("TokenId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("DeviceUuid", "Status");
+
+                    b.HasIndex("UserId", "Status");
 
                     b.ToTable("journeys", (string)null);
                 });
@@ -141,6 +209,74 @@ namespace Ticketing_System_Backend.Migrations
                         .HasName("pk_otp_verifications");
 
                     b.ToTable("otp_verifications", (string)null);
+                });
+
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.RouteStop", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("DistanceFromStartKm")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("distance_from_start_km");
+
+                    b.Property<Guid>("RouteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("route_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<Guid>("StopId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stop_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StopId");
+
+                    b.HasIndex("RouteId", "Sequence")
+                        .IsUnique();
+
+                    b.HasIndex("RouteId", "StopId")
+                        .IsUnique();
+
+                    b.ToTable("route_stops", (string)null);
+                });
+
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.Stop", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("Zone")
+                        .HasColumnType("integer")
+                        .HasColumnName("zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("stops", (string)null);
                 });
 
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TicketInspection", b =>
@@ -273,6 +409,39 @@ namespace Ticketing_System_Backend.Migrations
                     b.HasIndex("UserId", "CreatedAtUtc");
 
                     b.ToTable("top_up_transactions", (string)null);
+                });
+
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TransitRoute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("RouteNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("route_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RouteNumber")
+                        .IsUnique();
+
+                    b.ToTable("transit_routes", (string)null);
                 });
 
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TransportToken", b =>
@@ -432,8 +601,39 @@ namespace Ticketing_System_Backend.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.Bus", b =>
+                {
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.TransitRoute", "Route")
+                        .WithMany("Buses")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Route");
+                });
+
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.Journey", b =>
                 {
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.Stop", "AlightingStop")
+                        .WithMany()
+                        .HasForeignKey("AlightingStopId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.Stop", "BoardingStop")
+                        .WithMany()
+                        .HasForeignKey("BoardingStopId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.Bus", "Bus")
+                        .WithMany()
+                        .HasForeignKey("BusId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.TransitRoute", "Route")
+                        .WithMany()
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Ticketing_System_Backend.Models.Entities.TransportToken", "Token")
                         .WithMany()
                         .HasForeignKey("TokenId")
@@ -444,9 +644,36 @@ namespace Ticketing_System_Backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("AlightingStop");
+
+                    b.Navigation("BoardingStop");
+
+                    b.Navigation("Bus");
+
+                    b.Navigation("Route");
+
                     b.Navigation("Token");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.RouteStop", b =>
+                {
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.TransitRoute", "Route")
+                        .WithMany("Stops")
+                        .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.Stop", "Stop")
+                        .WithMany()
+                        .HasForeignKey("StopId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Route");
+
+                    b.Navigation("Stop");
                 });
 
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TicketInspection", b =>
@@ -478,6 +705,13 @@ namespace Ticketing_System_Backend.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TransitRoute", b =>
+                {
+                    b.Navigation("Buses");
+
+                    b.Navigation("Stops");
                 });
 
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.User", b =>

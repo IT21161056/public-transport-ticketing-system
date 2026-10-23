@@ -40,6 +40,7 @@ import { tokenApi } from './api/tokenApi';
 import { ROUTE_PATHS, ADMIN_PATHS, pathToRoute, homePathFor } from './routes';
 import { TicketInspectionPage } from './pages/TicketInspectionPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { BoardingReaderPage } from './pages/BoardingReaderPage';
 
 export function App() {
   const { theme, toggleTheme } = useTheme();
@@ -270,6 +271,7 @@ export function App() {
               <Routes>
                 <Route index element={<AdminDashboard user={adminUser} onOpenScanner={() => handleOpenScanner()} />} />
                 <Route path="inspection" element={<TicketInspectionPage />} />
+                <Route path="reader" element={<BoardingReaderPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="*" element={<Navigate to={ADMIN_PATHS.home} replace />} />
               </Routes>

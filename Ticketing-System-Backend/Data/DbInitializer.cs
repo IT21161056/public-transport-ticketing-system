@@ -42,6 +42,9 @@ public static class DbInitializer
                 );
             ");
 
+            // Bus routes, stops and buses for the boarding reader
+            await TransitNetworkSeeder.SeedAsync(context);
+
             // 1. Seed Administrator User (admin / admin123)
             var adminUser = await context.Users.FirstOrDefaultAsync(u => 
                 u.UserName == "admin" || 

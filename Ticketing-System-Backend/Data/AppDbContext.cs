@@ -14,6 +14,10 @@ public class AppDbContext : DbContext
     public DbSet<TransportToken> TransportTokens => Set<TransportToken>();
     public DbSet<Journey> Journeys => Set<Journey>();
     public DbSet<TicketInspection> TicketInspections => Set<TicketInspection>();
+    public DbSet<TransitRoute> TransitRoutes => Set<TransitRoute>();
+    public DbSet<Stop> Stops => Set<Stop>();
+    public DbSet<RouteStop> RouteStops => Set<RouteStop>();
+    public DbSet<Bus> Buses => Set<Bus>();
     public DbSet<TopUpTransaction> TopUpTransactions => Set<TopUpTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -108,11 +112,110 @@ public class AppDbContext : DbContext
             entity.Property(e => e.FareAmount).HasColumnName("fare_amount").HasPrecision(10, 2).HasDefaultValue(0.00m);
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.CreatedAtUtc).HasColumnName("created_at_utc");
+            entity.Property(e => e.RouteId).HasColumnName("route_id");
+            entity.Property(e => e.BusId).HasColumnName("bus_id");
+            entity.Property(e => e.BoardingStopId).HasColumnName("boarding_stop_id");
+            entity.Property(e => e.AlightingStopId).HasColumnName("alighting_stop_id");
+            entity.Property(e => e.StopsTravelled).HasColumnName("stops_travelled");
+            entity.Property(e => e.FarePolicy).HasColumnName("fare_policy").HasMaxLength(50);
+
+            // Boarding reader looks up the passenger's open journey on every tap
+            entity.HasIndex(e => new { e.UserId, e.Status });
+            entity.HasIndex(e => new { e.DeviceUuid, e.Status });
 
             entity.HasOne(e => e.Token)
                   .WithMany()
                   .HasForeignKey(e => e.TokenId)
                   .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Route)
+                  .WithMany()
+                  .HasForeignKey(e => e.RouteId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Bus)
+                  .WithMany()
+                  .HasForeignKey(e => e.BusId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.BoardingStop)
+                  .WithMany()
+                  .HasForeignKey(e => e.BoardingStopId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.AlightingStop)
+                  .WithMany()
+                  .HasForeignKey(e => e.AlightingStopId)
+                  .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TransitRoute>(entity =>
+        {
+            entity.ToTable("transit_routes");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.RouteNumber).HasColumnName("route_number").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(150).IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+
+            entity.HasIndex(e => e.RouteNumber).IsUnique();
+        });
+
+        modelBuilder.Entity<Stop>(entity =>
+        {
+            entity.ToTable("stops");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Code).HasColumnName("code").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Zone).HasColumnName("zone");
+
+            entity.HasIndex(e => e.Code).IsUnique();
+        });
+
+        modelBuilder.Entity<RouteStop>(entity =>
+        {
+            entity.ToTable("route_stops");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.RouteId).HasColumnName("route_id");
+            entity.Property(e => e.StopId).HasColumnName("stop_id");
+            entity.Property(e => e.Sequence).HasColumnName("sequence");
+            entity.Property(e => e.DistanceFromStartKm).HasColumnName("distance_from_start_km").HasPrecision(6, 2);
+
+            entity.HasIndex(e => new { e.RouteId, e.Sequence }).IsUnique();
+            entity.HasIndex(e => new { e.RouteId, e.StopId }).IsUnique();
+
+            entity.HasOne(e => e.Route)
+                  .WithMany(r => r.Stops)
+                  .HasForeignKey(e => e.RouteId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Stop)
+                  .WithMany()
+                  .HasForeignKey(e => e.StopId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Bus>(entity =>
+        {
+            entity.ToTable("buses");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.RegistrationNumber).HasColumnName("registration_number").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.RouteId).HasColumnName("route_id");
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+
+            entity.HasIndex(e => e.RegistrationNumber).IsUnique();
+
+            entity.HasOne(e => e.Route)
+                  .WithMany(r => r.Buses)
+                  .HasForeignKey(e => e.RouteId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<TicketInspection>(entity =>

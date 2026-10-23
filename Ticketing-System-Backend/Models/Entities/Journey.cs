@@ -18,4 +18,24 @@ public class Journey
     public decimal FareAmount { get; set; } = 0.00m;
     public JourneyStatus Status { get; set; } = JourneyStatus.InProgress;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+    // Set by the boarding reader. Nullable because demo/report seed journeys only carry station names.
+    public Guid? RouteId { get; set; }
+    public TransitRoute? Route { get; set; }
+    public Guid? BusId { get; set; }
+    public Bus? Bus { get; set; }
+    public Guid? BoardingStopId { get; set; }
+    public Stop? BoardingStop { get; set; }
+    public Guid? AlightingStopId { get; set; }
+    public Stop? AlightingStop { get; set; }
+
+    /// <summary>
+    /// Stops between boarding and alighting stop on the route, worked out at tap-out.
+    /// </summary>
+    public int? StopsTravelled { get; set; }
+
+    /// <summary>
+    /// Fare policy used at tap-out (e.g. "Distance-Based"), so the charge can be explained later.
+    /// </summary>
+    public string? FarePolicy { get; set; }
 }
