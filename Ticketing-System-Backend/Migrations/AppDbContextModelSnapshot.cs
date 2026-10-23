@@ -203,6 +203,78 @@ namespace Ticketing_System_Backend.Migrations
                     b.ToTable("ticket_inspections", (string)null);
                 });
 
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TopUpTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("balance_after");
+
+                    b.Property<decimal>("BonusAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasDefaultValue(0.00m)
+                        .HasColumnName("bonus_amount");
+
+                    b.Property<string>("ChannelName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("channel_name");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("failure_reason");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("method");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("payment_reference");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("TotalCredits")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("total_credits");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAtUtc");
+
+                    b.ToTable("top_up_transactions", (string)null);
+                });
+
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TransportToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -387,6 +459,17 @@ namespace Ticketing_System_Backend.Migrations
                     b.Navigation("Journey");
                 });
 
+            modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TopUpTransaction", b =>
+                {
+                    b.HasOne("Ticketing_System_Backend.Models.Entities.User", "User")
+                        .WithMany("TopUpTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Ticketing_System_Backend.Models.Entities.TransportToken", b =>
                 {
                     b.HasOne("Ticketing_System_Backend.Models.Entities.User", "User")
@@ -402,6 +485,8 @@ namespace Ticketing_System_Backend.Migrations
                     b.Navigation("Journeys");
 
                     b.Navigation("Tokens");
+
+                    b.Navigation("TopUpTransactions");
                 });
 #pragma warning restore 612, 618
         }
