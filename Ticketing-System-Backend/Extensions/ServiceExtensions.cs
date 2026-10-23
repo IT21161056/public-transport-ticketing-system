@@ -10,6 +10,8 @@ using Ticketing_System_Backend.Services.Inspection;
 using Ticketing_System_Backend.Services.Inspection.Rules;
 using Ticketing_System_Backend.Services.Reporting;
 using Ticketing_System_Backend.Services.Tap;
+using Ticketing_System_Backend.Services.TopUp;
+using Ticketing_System_Backend.Services.TopUp.Channels;
 
 namespace Ticketing_System_Backend.Extensions;
 
@@ -41,6 +43,7 @@ public static class ServiceExtensions
         services.AddScoped<IInspectionRepository, InspectionRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<ITransitRepository, TransitRepository>();
+        services.AddScoped<ITopUpTransactionRepository, TopUpTransactionRepository>();
 
         return services;
     }
@@ -73,6 +76,13 @@ public static class ServiceExtensions
                 "Tap settings cannot be negative.")
             .ValidateOnStart();
         services.AddScoped<ITapService, TapService>();
+
+        // Account Top-Up: PaymentGateway, TopUpChannels (OnlineChannel, MobileChannel, PayStationChannel), and TopUpChannelFactory
+        services.AddScoped<IPaymentGateway, PaymentGateway>();
+        services.AddScoped<OnlineChannel>();
+        services.AddScoped<MobileChannel>();
+        services.AddScoped<PayStationChannel>();
+        services.AddScoped<TopUpChannelFactory>();
 
         // Ticket inspection: rule chain handlers (Chain of Responsibility) and settings
         services.AddOptions<InspectionOptions>().BindConfiguration(InspectionOptions.SectionName);

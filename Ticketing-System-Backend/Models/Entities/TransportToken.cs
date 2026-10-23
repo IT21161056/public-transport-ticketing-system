@@ -11,6 +11,7 @@ public class TransportToken
     public string? DeviceUuid { get; set; }
     public TokenType TokenType { get; set; } = TokenType.LocalUser;
     public string? PassTier { get; set; } // "1-Day", "3-Day", "7-Day"
+    public string? Medium { get; set; } = "Digital QR"; // "Digital QR", "Smartcard"
     public string SignedToken { get; set; } = string.Empty;
     public string Nonce { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;

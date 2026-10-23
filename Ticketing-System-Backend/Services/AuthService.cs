@@ -96,20 +96,28 @@ public class AuthService : IAuthService
         // Mark OTP as consumed
         await _otpRepository.MarkAsUsedAsync(validOtp);
 
-        // Find or create local user
+        // Find local user
         var user = await _userRepository.GetByPhoneNumberAsync(cleanPhone);
+        bool isNewUser = (user == null);
+
         if (user == null)
         {
             string fullName = !string.IsNullOrWhiteSpace(request.FullName)
                 ? request.FullName.Trim()
                 : (!string.IsNullOrWhiteSpace(validOtp.FullName) ? validOtp.FullName : $"Commuter {cleanPhone[^4..]}");
 
+            decimal initialCredit = request.InitialCredit.HasValue && request.InitialCredit.Value >= 500.00m
+                ? request.InitialCredit.Value
+                : 500.00m; // Default initial credit 500.00 per Flow 1 specification
+            string medium = !string.IsNullOrWhiteSpace(request.TokenMedium) ? request.TokenMedium.Trim() : "Digital QR";
+
             user = new User
             {
                 PhoneNumber = cleanPhone,
                 FullName = fullName,
                 IsPhoneVerified = true,
-                CreditBalance = 1250.00m,
+                CreditBalance = initialCredit,
+                TokenMedium = medium,
                 CreatedAtUtc = DateTime.UtcNow,
                 LastLoginAtUtc = DateTime.UtcNow
             };
@@ -124,6 +132,14 @@ public class AuthService : IAuthService
             {
                 user.FullName = request.FullName.Trim();
             }
+            if (request.InitialCredit.HasValue && request.InitialCredit.Value > 0)
+            {
+                user.CreditBalance = request.InitialCredit.Value;
+            }
+            if (!string.IsNullOrWhiteSpace(request.TokenMedium))
+            {
+                user.TokenMedium = request.TokenMedium.Trim();
+            }
             await _userRepository.UpdateAsync(user);
             await _userRepository.SaveChangesAsync();
         }
@@ -131,7 +147,7 @@ public class AuthService : IAuthService
         // Ensure user has a persistent token generated
         if (string.IsNullOrWhiteSpace(user.PersistentQrToken))
         {
-            await _tokenService.GetOrCreateLocalTokenAsync(user.Id);
+            await _tokenService.GetOrCreateLocalTokenAsync(user.Id, user.TokenMedium);
         }
 
         // Generate JWT
@@ -146,14 +162,87 @@ public class AuthService : IAuthService
             IsPhoneVerified: user.IsPhoneVerified,
             Role: user.Role,
             Email: user.Email,
-            UserName: user.UserName
+            UserName: user.UserName,
+            TokenMedium: user.TokenMedium
         );
 
         return new AuthResponseDto(
             Success: true,
             Message: "Authentication successful.",
             Token: jwtToken,
-            User: profile
+            User: profile,
+            IsNewUser: isNewUser
+        );
+    }
+
+    public async Task<AuthResponseDto> CompleteRegistrationAsync(CompleteRegistrationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            return new AuthResponseDto(false, "Phone number is required.", null, null);
+        }
+
+        if (request.InitialCredit < 500.00m)
+        {
+            return new AuthResponseDto(false, "Initial credit must be at least LKR 500.00.", null, null);
+        }
+
+        string cleanPhone = request.PhoneNumber.Trim().Replace(" ", "").Replace("-", "");
+        var user = await _userRepository.GetByPhoneNumberAsync(cleanPhone);
+
+        string medium = !string.IsNullOrWhiteSpace(request.TokenMedium) ? request.TokenMedium.Trim() : "Digital QR";
+        string fullName = !string.IsNullOrWhiteSpace(request.FullName) ? request.FullName.Trim() : (user?.FullName ?? $"Commuter {cleanPhone[^4..]}");
+
+        if (user == null)
+        {
+            user = new User
+            {
+                PhoneNumber = cleanPhone,
+                FullName = fullName,
+                IsPhoneVerified = true,
+                CreditBalance = request.InitialCredit,
+                TokenMedium = medium,
+                CreatedAtUtc = DateTime.UtcNow,
+                LastLoginAtUtc = DateTime.UtcNow
+            };
+            await _userRepository.CreateAsync(user);
+        }
+        else
+        {
+            user.FullName = fullName;
+            user.IsPhoneVerified = true;
+            user.CreditBalance = request.InitialCredit;
+            user.TokenMedium = medium;
+            user.LastLoginAtUtc = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+            await _userRepository.SaveChangesAsync();
+        }
+
+        // Generate active AccountLinkedToken for this commuter
+        var tokenRes = await _tokenService.GetOrCreateLocalTokenAsync(user.Id, medium);
+
+        // Generate JWT
+        string jwtToken = GenerateJwtToken(user);
+
+        var profile = new UserProfileDto(
+            Id: user.Id,
+            FullName: user.FullName,
+            PhoneNumber: user.PhoneNumber,
+            CreditBalance: user.CreditBalance,
+            PersistentQrToken: user.PersistentQrToken ?? tokenRes.Token,
+            IsPhoneVerified: user.IsPhoneVerified,
+            Role: user.Role,
+            Email: user.Email,
+            UserName: user.UserName,
+            TokenMedium: user.TokenMedium
+        );
+
+        return new AuthResponseDto(
+            Success: true,
+            Message: "Registration and initial credit activation successful.",
+            Token: jwtToken,
+            User: profile,
+            IsNewUser: false
         );
     }
 

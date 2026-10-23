@@ -56,16 +56,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { title, subtitle } = getRouteTitle(currentRoute);
 
   // ==========================================
-  // 1. VISITOR FLOW: NO SIDEBAR
-  // Visitors see only the top visitor navbar and full-width content
+  // 1. VISITOR & PUBLIC FLOW: NO SIDEBAR
+  // Visitors and public landing/guest wizard routes see only the top navbar and full-width content
   // ==========================================
-  if (!user) {
+  const isPublicOrGuestRoute =
+    !user ||
+    currentRoute === 'home' ||
+    currentRoute === 'landing' ||
+    currentRoute.startsWith('guest');
+
+  if (isPublicOrGuestRoute) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
         <Navbar
           currentRoute={currentRoute}
           onNavigate={onNavigate}
-          user={null}
+          user={user}
           onLogout={onLogout}
           theme={activeTheme}
           onToggleTheme={handleToggleTheme}

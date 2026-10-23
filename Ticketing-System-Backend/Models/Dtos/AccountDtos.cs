@@ -11,18 +11,52 @@ public record UserProfileDto(
     bool IsPhoneVerified,
     short Role = 0,
     string? Email = null,
-    string? UserName = null
+    string? UserName = null,
+    string? TokenMedium = "Digital QR"
+);
+
+public record TopUpPaymentDetailsDto(
+    string? CardNumber = null,
+    string? CardHolderName = null,
+    string? ExpiryDate = null,
+    string? Cvv = null,
+    string? MobileProvider = null,
+    string? MobileNumber = null,
+    string? StationId = null,
+    string? VoucherCode = null,
+    bool SimulateDecline = false
 );
 
 public record TopUpRequest(
     decimal Amount,
-    string? PaymentReference
+    string? PaymentReference = null,
+    string? Method = "ONLINE",
+    decimal BonusAmount = 0m,
+    TopUpPaymentDetailsDto? PaymentDetails = null,
+    Guid? UserId = null,
+    string? PhoneNumber = null,
+    string? FullName = null
+);
+
+public record TopUpTransactionDto(
+    Guid Id,
+    decimal Amount,
+    decimal BonusAmount,
+    decimal TotalCredits,
+    string Method,
+    string ChannelName,
+    string Status,
+    string? PaymentReference,
+    string? FailureReason,
+    decimal BalanceAfter,
+    DateTime CreatedAtUtc
 );
 
 public record TopUpResponseDto(
     bool Success,
     string Message,
-    decimal NewBalance
+    decimal NewBalance,
+    TopUpTransactionDto? Transaction = null
 );
 
 public record JourneyHistoryDto(

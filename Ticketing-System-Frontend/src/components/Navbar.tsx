@@ -7,7 +7,8 @@ import {
   Sun, 
   Moon, 
   LogIn, 
-  UserPlus 
+  UserPlus,
+  LayoutDashboard 
 } from 'lucide-react';
 import type { AppRoute, RegisteredUser } from '../types';
 import Button from './Button';
@@ -100,24 +101,37 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Login & Register Buttons */}
+          {/* Login & Register Buttons OR Commuter Hub CTA */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<LogIn className="w-3.5 h-3.5" />}
-              onClick={() => handleNav('login')}
-            >
-              Login
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<Sparkles className="w-3.5 h-3.5" />}
-              onClick={() => handleNav('register')}
-            >
-              Register
-            </Button>
+            {user ? (
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<LayoutDashboard className="w-3.5 h-3.5" />}
+                onClick={() => handleNav('dashboard')}
+              >
+                Commuter Hub
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<LogIn className="w-3.5 h-3.5" />}
+                  onClick={() => handleNav('login')}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                  onClick={() => handleNav('register')}
+                >
+                  Register
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -180,24 +194,38 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<LogIn className="w-3.5 h-3.5" />}
-              onClick={() => handleNav('login')}
-              className="w-full"
-            >
-              Login
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<UserPlus className="w-3.5 h-3.5" />}
-              onClick={() => handleNav('register')}
-              className="w-full"
-            >
-              Register
-            </Button>
+            {user ? (
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<LayoutDashboard className="w-3.5 h-3.5" />}
+                onClick={() => handleNav('dashboard')}
+                className="w-full col-span-2"
+              >
+                Go to Commuter Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<LogIn className="w-3.5 h-3.5" />}
+                  onClick={() => handleNav('login')}
+                  className="w-full"
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<UserPlus className="w-3.5 h-3.5" />}
+                  onClick={() => handleNav('register')}
+                  className="w-full"
+                >
+                  Register
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

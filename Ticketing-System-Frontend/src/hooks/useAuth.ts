@@ -112,6 +112,49 @@ export function useAuth() {
   }, [otpData]);
 
   /**
+   * Completes registration for Path A Commuter (Fuel-Pass Style) with chosen initial credit and medium.
+   */
+  const completeRegistration = useCallback(async (
+    phoneNumber: string,
+    fullName: string,
+    initialCredit: number,
+    tokenMedium: string,
+    paymentMethod: string = 'Card'
+  ) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authApi.completeRegistration({
+        phoneNumber,
+        fullName,
+        initialCredit,
+        tokenMedium,
+        paymentMethod,
+        paymentReference: `PAY-${Date.now()}`,
+      });
+
+      if (result.success && result.user) {
+        saveUser(result.user);
+        setUser(result.user);
+        setOtpData(null);
+        setToastCode(null);
+        return { success: true, user: result.user, message: result.message };
+      }
+
+      const failMsg = result.message || 'Registration failed.';
+      setError(failMsg);
+      return { success: false, message: failMsg };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Registration failed';
+      setError(msg);
+      return { success: false, message: msg };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
    * Clears session and logs out user.
    */
   const logout = useCallback(() => {
@@ -156,6 +199,7 @@ export function useAuth() {
     setToastCode,
     requestOtp,
     verifyOtp,
+    completeRegistration,
     logout,
     refreshProfile,
     updateUserState,

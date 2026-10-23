@@ -17,11 +17,32 @@ public class User
     public DateTime? UpdatedAtUtc { get; set; }
     public DateTime? LastLoginAtUtc { get; set; }
     public string? UserCode { get; set; }
-    public decimal CreditBalance { get; set; } = 1250.00m;
+    public decimal CreditBalance { get; set; } = 0.00m;
     public string? PersistentQrToken { get; set; }
+    public string? TokenMedium { get; set; } = "Digital QR";
     public bool IsPhoneVerified { get; set; } = false;
 
     // Navigation properties
     public ICollection<Journey> Journeys { get; set; } = new List<Journey>();
     public ICollection<TransportToken> Tokens { get; set; } = new List<TransportToken>();
+    public ICollection<TopUpTransaction> TopUpTransactions { get; set; } = new List<TopUpTransaction>();
+
+    /// <summary>
+    /// Sequence Diagram Step 12-13: account.topUp(amount) -> balanceUpdated
+    /// </summary>
+    public decimal TopUp(decimal amount)
+    {
+        CreditBalance += amount;
+        UpdatedAtUtc = DateTime.UtcNow;
+        return CreditBalance;
+    }
+
+    /// <summary>
+    /// Sequence Diagram Steps 14-15 & 19-20: account.addTransaction(tx) -> transactionRecorded / failedAttemptRecorded
+    /// </summary>
+    public void AddTransaction(TopUpTransaction tx)
+    {
+        tx.UserId = Id;
+        TopUpTransactions.Add(tx);
+    }
 }

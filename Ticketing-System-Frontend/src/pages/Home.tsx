@@ -10,20 +10,23 @@ import {
   Zap, 
   Smartphone 
 } from 'lucide-react';
-import type { AppRoute, RegisteredUser } from '../types';
+import type { AppRoute, RegisteredUser, GuestTransportToken } from '../types';
 import Button from '../components/Button';
 
 export interface HomeProps {
   onNavigate: (route: AppRoute) => void;
   onStartGuest: () => void;
   user?: RegisteredUser | null;
+  activeGuestPass?: GuestTransportToken | null;
 }
 
 export const Home: React.FC<HomeProps> = ({
   onNavigate,
   onStartGuest,
   user,
+  activeGuestPass,
 }) => {
+  const isGuestPassActive = activeGuestPass && new Date(activeGuestPass.expiresAt).getTime() > Date.now();
   return (
     <div className="max-w-6xl mx-auto w-full py-4 sm:py-8 space-y-10">
       {/* Hero Section */}
@@ -48,6 +51,36 @@ export const Home: React.FC<HomeProps> = ({
             Travel seamlessly across all metropolitan trains, buses, and trams.
             No plastic smartcards, no passwords, and complete privacy protection.
           </p>
+
+          {/* Flow 1 Step 4: Auto-Recovery Banner for Visitor Token */}
+          {!user && isGuestPassActive && (
+            <div className="mx-auto max-w-lg p-4 rounded-2xl bg-cyan-950/70 border border-cyan-500/40 text-left flex items-center justify-between shadow-lg shadow-cyan-950/50 animate-pulse-border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Active Visitor Pass Detected
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {activeGuestPass?.durationLabel} Unlimited Pass linked to this device
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onNavigate('guest-qr')}
+                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                View QR
+              </Button>
+            </div>
+          )}
 
           {/* Action CTAs */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -82,7 +115,7 @@ export const Home: React.FC<HomeProps> = ({
                   onClick={onStartGuest}
                   className="w-full sm:w-auto"
                 >
-                  Get Tourist / Visitor Pass
+                  {isGuestPassActive ? 'View Active Visitor Pass' : 'Visitor Express Pass'}
                 </Button>
                 <Button
                   variant="secondary"
@@ -91,7 +124,7 @@ export const Home: React.FC<HomeProps> = ({
                   onClick={() => onNavigate('register')}
                   className="w-full sm:w-auto"
                 >
-                  Local Commuter Account
+                  Local Commuter Pass
                 </Button>
               </>
             )}

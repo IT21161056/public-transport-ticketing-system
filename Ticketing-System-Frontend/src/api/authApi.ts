@@ -23,6 +23,17 @@ export interface VerifyOtpPayload {
   phoneNumber: string;
   otpCode: string;
   fullName?: string;
+  initialCredit?: number;
+  tokenMedium?: string;
+}
+
+export interface CompleteRegistrationPayload {
+  phoneNumber: string;
+  fullName: string;
+  initialCredit: number;
+  tokenMedium: string;
+  paymentMethod?: string;
+  paymentReference?: string;
 }
 
 export interface AuthBackendUser {
@@ -32,6 +43,7 @@ export interface AuthBackendUser {
   creditBalance: number;
   persistentQrToken: string | null;
   isPhoneVerified: boolean;
+  tokenMedium?: string;
 }
 
 export interface BackendAuthResponse {
@@ -39,6 +51,7 @@ export interface BackendAuthResponse {
   message: string;
   token?: string;
   user?: AuthBackendUser;
+  isNewUser?: boolean;
 }
 
 export interface AuthVerifyResult {
@@ -93,6 +106,8 @@ export const authApi = {
         phoneNumber: payload.phoneNumber,
         otpCode: payload.otpCode,
         fullName: payload.fullName,
+        initialCredit: payload.initialCredit,
+        tokenMedium: payload.tokenMedium,
       });
 
       const res = response.data;
@@ -110,6 +125,7 @@ export const authApi = {
           creditBalance: Number(res.user.creditBalance) || 0,
           persistentQrToken: res.user.persistentQrToken || '',
           accountStatus: 'active',
+          tokenMedium: res.user.tokenMedium || 'Digital QR',
         };
 
         return {
@@ -129,6 +145,54 @@ export const authApi = {
       return {
         success: false,
         message: extractErrorMessage(error, 'Incorrect or expired OTP. Please try again.'),
+      };
+    }
+  },
+
+  /**
+   * Completes registration for Path A Commuter (Fuel-Pass style):
+   * Loads initial credit (min LKR 500) and generates active AccountLinkedToken.
+   */
+  async completeRegistration(
+    payload: CompleteRegistrationPayload
+  ): Promise<AuthVerifyResult> {
+    try {
+      const response = await apiClient.post<BackendAuthResponse>('/auth/complete-registration', payload);
+      const res = response.data;
+      if (res.success && res.user) {
+        if (res.token) {
+          localStorage.setItem('auth_token', res.token);
+        }
+
+        const mappedUser: RegisteredUser = {
+          userId: res.user.id,
+          fullName: res.user.fullName,
+          phoneNumber: res.user.phoneNumber || payload.phoneNumber,
+          isPhoneVerified: res.user.isPhoneVerified,
+          registeredAt: new Date().toISOString(),
+          creditBalance: Number(res.user.creditBalance) || payload.initialCredit,
+          persistentQrToken: res.user.persistentQrToken || '',
+          accountStatus: 'active',
+          tokenMedium: res.user.tokenMedium || payload.tokenMedium,
+        };
+
+        return {
+          success: true,
+          message: res.message || 'Registration and initial credit activation successful.',
+          token: res.token,
+          user: mappedUser,
+        };
+      }
+
+      return {
+        success: false,
+        message: res.message || 'Registration failed.',
+      };
+    } catch (error) {
+      console.warn('Backend API complete-registration failed:', error);
+      return {
+        success: false,
+        message: extractErrorMessage(error, 'Failed to complete commuter registration. Please try again.'),
       };
     }
   },
