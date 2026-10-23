@@ -100,7 +100,7 @@ public class ReportService : IReportService
         {
             "Revenue covers fares charged at tap-out for completed journeys.",
             "Guest pass sales are not included because pass prices are not yet recorded.",
-            "Account top-ups are not included because top-up transactions are not yet recorded."
+            "Account top-ups are not included here; they are prepaid credit, and fares are counted when that credit is spent on journeys."
         };
 
         return new RevenueReportDto(
